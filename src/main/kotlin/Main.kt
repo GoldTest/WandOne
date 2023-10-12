@@ -7,61 +7,75 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
-import java.awt.Desktop
+import androidx.compose.ui.window.*
 import java.io.*
 import java.nio.file.Files
-import java.nio.file.Path
+
 import java.util.*
 import java.util.prefs.Preferences
 import kotlin.concurrent.schedule
 
+
+val SOURCE_FOLDER = "D:/STOP"
+val DEST_FOLDER = "E:/抖音归档"
+
+
 @Composable
 @Preview
-fun App() {
-    var migrate by remember { mutableStateOf("手动迁移") }
-    var service by remember { mutableStateOf("启动服务") }
+fun App(viewModel: MainViewModel) {
+
     val migrationStatus = remember { mutableStateListOf<String>() }
-    val SOURCE_FOLDER = "D:/STOP"
-    val DEST_FOLDER = "E:/抖音归档"
-
     val startupEnabled = remember { mutableStateOf(isStartupEnabled()) }
-
-
     val exePath = remember { mutableStateOf(getExePath()) }
 
     MaterialTheme {
-        Column {
+        Column(
+            modifier = Modifier.padding(start = 10.dp, top = 8.dp)
+        ) {
             var manualClick by remember { mutableStateOf(0) }
-            Button(onClick = {
-                migrationStatus.clear()
-                changeFolder(SOURCE_FOLDER, DEST_FOLDER, migrationStatus)
-                migrate = "手动迁移点击：$manualClick"
-                manualClick++
-            }) {
-                Text(migrate)
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    modifier = Modifier.padding(end = 8.dp),
+                    onClick = {
+                        migrationStatus.clear()
+                        changeFolder(SOURCE_FOLDER, DEST_FOLDER, migrationStatus)
+                        viewModel.migrateState.value = "手动迁移点击：$manualClick"
+                        manualClick++
+                    },
+                ) {
+                    Text(viewModel.migrateState.value)
+                }
+
+                if (migrationStatus.isNotEmpty()) {
+                    Text(migrationStatus.last())
+                } else {
+                    Text("未手动迁移过")
+                }
             }
 
-            if (migrationStatus.isNotEmpty()) {
-                Text(migrationStatus.last())
-            } else {
-                Text("未开始")
-            }
-
-            val fileMigrationService = FileMigrationService(SOURCE_FOLDER, DEST_FOLDER)
-
             Button(onClick = {
-                service = if (service == "运行中，点击停止") {
-                    fileMigrationService.stop()
+                viewModel.serviceState.value = if (viewModel.serviceState.value == "运行中，点击停止") {
+                    viewModel.fileMigrationService.stop()
                     "启动服务"
                 } else {
-                    fileMigrationService.start()
+                    viewModel.fileMigrationService.start()
                     "运行中，点击停止"
                 }
             }) {
-                Text(service)
+                Text(viewModel.serviceState.value)
             }
 
             Row(
@@ -69,18 +83,14 @@ fun App() {
             ) {
                 Text(text = "跟随系统启动 需要管理员权限")
                 Spacer(modifier = Modifier.width(8.dp))
-                Checkbox(
-                    checked = startupEnabled.value,
-                    onCheckedChange = { isChecked ->
-                        run {
-                            startupEnabled.value = isChecked
-                            setStartupEnabled(isChecked, getExePath())
-                        }
+                Checkbox(checked = startupEnabled.value, onCheckedChange = { isChecked ->
+                    run {
+                        startupEnabled.value = isChecked
+                        setStartupEnabled(isChecked, getExePath())
                     }
-                )
+                })
             }
-            Text(text = "当前 .exe 文件路径：${exePath.value}")
-
+            Text(text = "当前 .exe 文件路径：\n${exePath.value}")
 
         }
     }
@@ -95,10 +105,82 @@ fun App() {
 //    }
 //}
 
+class CustomIconPainter : Painter() {
+    override val intrinsicSize = Size(20.toFloat(), 20.toFloat())
+
+    override fun DrawScope.onDraw() {
+        // 在这里使用 drawXXX() 方法绘制自定义的图标形状
+        val path = Path().apply {
+            // 添加路径操作，定义图标的形状
+        }
+
+        // 绘制图标的样式
+        val style: DrawStyle = Stroke(width = 2f, cap = StrokeCap.Round)
+
+        // 设置绘制的颜色
+        val color: Color = Color.Red
+
+        // 使用 drawPath() 方法绘制图标形状
+        drawPath(path = path, color = color, style = style)
+    }
+}
+
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        this.window.isMinimized = true
-        App()
+    var isVisible by remember { mutableStateOf(false) }
+    val viewModel = MainViewModel()
+
+
+    val trayState = rememberTrayState()
+    val customIconPainter = CustomIconPainter()
+
+    Tray(
+        state = trayState,
+        icon = customIconPainter,
+        tooltip = "auto filter",
+        onAction = {
+            isVisible = true
+        },
+        menu = {
+            Item(
+                "start service",
+                enabled = !viewModel.serviceRunningState.value,
+                onClick = {
+                    viewModel.fileMigrationService.start()
+                    viewModel.serviceState.value = "运行中，点击停止"
+                }
+            )
+
+            Item(
+                "close service",
+                enabled = viewModel.serviceRunningState.value,
+                onClick = {
+                    viewModel.fileMigrationService.stop()
+                    viewModel.serviceState.value = "启动服务"
+                }
+            )
+
+            Item(
+                "exit",
+                onClick = {
+                    exitApplication()
+                }
+            )
+        }
+    )
+
+    val windowState = rememberWindowState()
+    windowState.size = DpSize(400.dp, 600.dp)
+    windowState.position = WindowPosition(Alignment.Center)
+//    windowState.isMinimized = true
+
+
+    Window(
+        onCloseRequest = { isVisible = false },
+        visible = isVisible,
+        title = "auto filter",
+        state = windowState
+    ) {
+        App(viewModel = viewModel)
     }
 }
 
@@ -223,7 +305,7 @@ fun setStartupEnabled(enabled: Boolean, exePath: String) {
             linkFile.delete()
         }
 
-        var process: Process? = null;
+        var process: Process? = null
         val adminShell = java.lang.String.format("cmd /c mklink \"%s\" \"%s\"", shortcutPath, exePath)
         try {
             val processBuilder = ProcessBuilder(adminShell.split(" "))
@@ -266,7 +348,7 @@ fun setStartupEnabled(enabled: Boolean, exePath: String) {
 
     } else {
         try {
-            Files.deleteIfExists(Path.of(shortcutPath))
+            Files.deleteIfExists(java.nio.file.Path.of(shortcutPath))
         } catch (e: IOException) {
             // 处理文件删除异常
             println("无法删除文件：$shortcutPath")
@@ -276,21 +358,27 @@ fun setStartupEnabled(enabled: Boolean, exePath: String) {
 }
 
 open class FileMigrationService(
-    private val sourceFolderPath: String, private val destinationFolderPath: String
+    private val sourceFolderPath: String,
+    private val destinationFolderPath: String,
+    private val viewModel: MainViewModel
 ) {
 
     private var timer: Timer? = null
 
     fun start() {
+        if (viewModel.serviceRunningState.value) return
         timer = Timer()
         timer?.schedule(0, 1000) { // 每隔5秒检查一次
             changeFolder(sourceFolderPath, destinationFolderPath, null)
         }
+        viewModel.serviceRunningState.value = true
     }
 
     fun stop() {
+        if (!viewModel.serviceRunningState.value) return
         timer?.cancel()
         timer = null
+        viewModel.serviceRunningState.value = false
     }
 
 }
