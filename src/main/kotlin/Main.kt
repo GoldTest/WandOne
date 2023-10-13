@@ -400,7 +400,7 @@ open class FileMigrationService(
     fun start() {
         if (viewModel.serviceRunningState.value) return
         timer = Timer()
-        timer?.schedule(0, 1000) { // 每隔5秒检查一次
+        timer?.schedule(0, 10000) {//gap 10s
             changeFolder(sourceFolderPath, destinationFolderPath, null)
         }
         viewModel.serviceRunningState.value = true
