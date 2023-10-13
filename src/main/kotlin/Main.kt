@@ -249,6 +249,7 @@ fun changeFolder(sourceFolderPath: String, destinationFolderPath: String, migrat
     }
     for (file in files) {
         val fileName = file.name
+        if (fileName.endsWith(".crdownload")) continue
         val separatorIndex = fileName.indexOf("_")
         if (separatorIndex != -1) {
             val folderName = fileName.substring(0, separatorIndex)
