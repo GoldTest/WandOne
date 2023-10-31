@@ -1,4 +1,5 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Checkbox
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
@@ -95,6 +97,34 @@ fun App(viewModel: MainViewModel) {
             }
             Text(text = "当前 .exe 文件路径：\n${exePath.value}")
 
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    modifier = Modifier.padding(end = 8.dp).width(windowWidth).height(windowHeight),
+                    onClick = {
+                        javaClass.classLoader.getResource("icon.png")
+                    },
+                ) {
+                    val imageResId = "icon.png" // 资源文件的名称
+                    val painter = painterResource(imageResId)
+
+                    Image(
+                        painter = painter,
+                        contentDescription = "Icon",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                if (migrationStatus.isNotEmpty()) {
+                    Text(migrationStatus.last())
+                } else {
+                    Text("未手动迁移过")
+                }
+            }
+
+
         }
     }
 }
@@ -149,6 +179,9 @@ class CustomIconPainter(private val color: Color) : Painter() {
     }
 }
 
+val windowWidth = 400.dp
+val windowHeight = 600.dp
+
 fun main() = application {
     var isVisible by remember { mutableStateOf(false) }
     val viewModel = MainViewModel()
@@ -160,13 +193,13 @@ fun main() = application {
 
 
     val windowState = rememberWindowState()
-    windowState.size = DpSize(400.dp, 600.dp)
+    windowState.size = DpSize(windowWidth, windowHeight)
     windowState.position = WindowPosition(Alignment.Center)
 
     Window(
         onCloseRequest = { isVisible = false },
         visible = isVisible,
-        title = "auto filter",
+        title = "WandToolOne 一号魔杖工具",
         state = windowState
     ) {
 
@@ -179,7 +212,7 @@ fun main() = application {
         Tray(
             state = trayState,
             icon = icon,
-            tooltip = "auto filter",
+            tooltip = "WandToolOne",
             onAction = {
                 isVisible = true
             },
@@ -218,7 +251,7 @@ fun main() = application {
 
 fun getExePath(): String {
     val currentDir = System.getProperty("user.dir") // 获取当前应用程序所在的目录路径
-    val exeFileName = "autofilter.exe" // 你的 .exe 文件名（包括扩展名）
+    val exeFileName = "WandToolOne.exe" // 你的 .exe 文件名（包括扩展名）
     val exeFile = File(currentDir, exeFileName)
     println(currentDir)
     return exeFile.absolutePath
@@ -294,7 +327,7 @@ fun getFileExtension(fileName: String): String {
 
 fun isStartupEnabled(): Boolean {
     val userPrefs = Preferences.userRoot()
-    val keyName = "AutofilterStartup"
+    val keyName = "WandToolOneStartup"
     return userPrefs.getBoolean(keyName, false)
 }
 
@@ -324,11 +357,11 @@ fun readInputStream(inputStream: InputStream): String {
 
 fun setStartupEnabled(enabled: Boolean, exePath: String) {
     val userPrefs = Preferences.userRoot()
-    val keyName = "AutofilterStartup"
+    val keyName = "WandToolOneStartup"
     userPrefs.putBoolean(keyName, enabled)
 
     val startupFolderPath = System.getenv("APPDATA") + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
-    val shortcutPath = "$startupFolderPath\\autofilter.lnk"
+    val shortcutPath = "$startupFolderPath\\WandToolOne.lnk"
 
     if (enabled) {
 

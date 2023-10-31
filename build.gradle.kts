@@ -27,8 +27,20 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "autofilter"
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
+//            modules("java.instrument", "java.prefs", "jdk.unsupported")
+//            buildTypes.release.proguard {
+//                configurationFiles.from(project.file("compose-desktop.pro"))
+//            }
+            windows {
+                shortcut = false
+                iconFile.set(File("icon.ico"))
+//                installationPath = "C:\\Programs\\CLI"
+                dirChooser = true
+                menuGroup = "--startup"
+            }
+            targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+            packageName = "WandToolOne"
             packageVersion = "1.0.2"
         }
     }

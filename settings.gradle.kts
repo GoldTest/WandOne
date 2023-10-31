@@ -10,4 +10,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "autofilter"
+rootProject.name = "WandToolOne"
