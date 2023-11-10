@@ -40,7 +40,7 @@ compose.desktop {
                 menuGroup = "--startup"
             }
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
-            packageName = "WandToolOne"
+            packageName = "WandOne"
             packageVersion = "1.0.2"
         }
     }

@@ -10,4 +10,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "WandToolOne"
+rootProject.name = "WandOne"
