@@ -1,0 +1,19 @@
+package model
+
+import DEFAULT_DOUYIN_DEST_FOLDER
+import DEFAULT_DOUYIN_SOURCE_FOLDER
+import FILE_MIGRATE_MANUAL
+import FILE_MIGRATE_START_SERVICE
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.runtime.mutableStateOf
+import service.file.FileMigrationService
+
+object FileMigrateViewModel{
+    var migrateState = mutableStateOf(FILE_MIGRATE_MANUAL)
+    var serviceState = mutableStateOf(FILE_MIGRATE_START_SERVICE)
+    var serviceRunningState = mutableStateOf(false)
+    val fileMigrationService = FileMigrationService(DEFAULT_DOUYIN_SOURCE_FOLDER, DEFAULT_DOUYIN_DEST_FOLDER, this)
+}
+object ToastViewModel{
+    val snackbarHostState = mutableStateOf(SnackbarHostState())
+}

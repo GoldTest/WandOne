@@ -1,14 +1,14 @@
 package service.file
 
-import APPViewModel
 import func.commonChangeFolder
+import model.FileMigrateViewModel
 import java.util.*
 import kotlin.concurrent.schedule
 
 open class FileMigrationService(
     private val sourceFolderPath: String,
     private val destinationFolderPath: String,
-    private val viewModel: APPViewModel
+    private val viewModel: FileMigrateViewModel
 ) {
 
     private var timer: Timer? = null

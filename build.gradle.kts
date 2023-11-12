@@ -5,7 +5,16 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-group = "com.example"
+tasks.withType<JavaCompile> {
+    sourceCompatibility = JavaVersion.VERSION_18.toString()
+    targetCompatibility = JavaVersion.VERSION_18.toString()
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class) {
+    kotlinOptions.jvmTarget = "18"
+}
+
+group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -15,11 +24,16 @@ repositories {
 }
 
 dependencies {
-    // Note, if you develop a library, you should use compose.desktop.common.
-    // compose.desktop.currentOs should be used in launcher-sourceSet
-    // (in a separate module for demo project and in testMain).
-    // With compose.desktop.common you will also lose @Preview functionality
+    //versions
+    val voyagerVersion = "1.0.0-rc10"
+    //desktop
     implementation(compose.desktop.currentOs)
+    //navigator
+    implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+    implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
+    implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
+    implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+
 }
 
 compose.desktop {
@@ -27,21 +41,21 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
+            packageName = "WandOne"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
-//            modules("java.instrument", "java.prefs", "jdk.unsupported")
-//            buildTypes.release.proguard {
-//                configurationFiles.from(project.file("compose-desktop.pro"))
-//            }
+            targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+
             windows {
                 shortcut = false
                 iconFile.set(File("icon.ico"))
-//                installationPath = "C:\\Programs\\CLI"
+                installationPath = "D:\\Program Files\\WandOne"
                 dirChooser = true
-                menuGroup = "--startup"
+                menu = true
+                menuGroup = "Startup"
+                packageVersion = "0.0.1"
+                perUserInstall = false
+                shortcut = true
             }
-            targetFormats(TargetFormat.Msi, TargetFormat.Exe)
-            packageName = "WandOne"
-            packageVersion = "1.0.2"
         }
     }
 }

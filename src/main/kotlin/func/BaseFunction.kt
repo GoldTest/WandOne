@@ -1,5 +1,6 @@
 package func
 
+import APP_PATH
 import java.io.*
 import java.nio.file.Files
 import java.util.prefs.Preferences
@@ -7,7 +8,7 @@ import java.util.prefs.Preferences
 
 fun getCurrentApplicationPath(): String {
     val currentDir = System.getProperty("user.dir") // 获取当前应用程序所在的目录路径
-    val exeFileName = "WandOne.exe" // 你的 .exe 文件名（包括扩展名）
+    val exeFileName = APP_PATH // 你的 .exe 文件名（包括扩展名）
     val exeFile = File(currentDir, exeFileName)
     return exeFile.absolutePath
 }
@@ -174,4 +175,8 @@ fun setStartupEnabled(enabled: Boolean, exePath: String) {
             e.printStackTrace()
         }
     }
+}
+
+fun hasAdminPermission():Boolean{
+    return false
 }
