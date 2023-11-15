@@ -3,6 +3,7 @@ import androidx.compose.ui.unit.dp
 //APP
 const val APP_WINDOW_TITLE = "一号魔杖"
 const val APP_PATH = "WandOne.exe"
+const val APP_ICON = "icon1.png"
 
 //Window
 val APP_WINDOW_WIDTH = 500.dp
@@ -19,9 +20,10 @@ const val DEFAULT_DOUYIN_SOURCE_FOLDER = "D:/STOP"
 const val DEFAULT_DOUYIN_DEST_FOLDER = "E:/抖音归档"
 
 //Tab
-const val FILE_MIGRATE = "文件迁移"
-const val MEDIA_MERGE = "媒体合并"
-const val SETTINGS = "设置"
+const val TAB_PIPELINE = "流动管线"
+const val TAB_MEDIA_MERGE = "媒体合并"
+const val TAB_SETTINGS = "设置"
+const val TAB_TOOLS = "工具"
 
 //File subs
 const val FILE_MIGRATE_MANUAL = "手动迁移"

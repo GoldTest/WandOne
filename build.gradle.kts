@@ -25,7 +25,8 @@ repositories {
 
 dependencies {
     //versions
-    val voyagerVersion = "1.0.0-rc10"
+    val voyagerVersion = "+"
+    val exposedVersion = "+"
     //desktop
     implementation(compose.desktop.currentOs)
     //navigator
@@ -33,6 +34,12 @@ dependencies {
     implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
     implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:$voyagerVersion")
     implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+
+//    implementation("org.jetbrains.compose.animation:animation-desktop:1.4.1")
+
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
 
 }
 

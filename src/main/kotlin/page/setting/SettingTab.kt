@@ -1,18 +1,16 @@
-package page
+package page.setting
 
 import PAGE_END
 import PAGE_START
-import SETTINGS
+import TAB_SETTINGS
 import SPACER_HEIGHT_12
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,15 +27,16 @@ import func.hasAdminPermission
 import func.isStartupEnabled
 import func.setStartupEnabled
 import kotlinx.coroutines.launch
-import model.ToastViewModel.snackbarHostState
+import model.SharedInstance.scope
+import model.ToastViewModel.snack
 
 
-object SettingPage : Tab {
-    private fun readResolve(): Any = SettingPage
+object SettingTab : Tab {
+    private fun readResolve(): Any = SettingTab
     override val options: TabOptions
         @Composable
         get() {
-            val title = SETTINGS
+            val title = TAB_SETTINGS
             val icon = painterResource("icons/settingInput.svg")
             return remember {
                 TabOptions(
@@ -60,7 +59,7 @@ fun SettingPage() {
 
     val startupEnabled = remember { mutableStateOf(isStartupEnabled()) }
     val exePath = remember { mutableStateOf(getCurrentApplicationPath()) }
-    val coroutineScope = rememberCoroutineScope()
+
 
 
     val pathText = AnnotatedString("当前 .exe 文件路径：\n${exePath.value}")
@@ -116,8 +115,8 @@ fun SettingPage() {
         val clipboard = LocalClipboardManager.current
         ClickableText(pathText, onClick = {
             clipboard.setText(realPath)
-            coroutineScope.launch {
-                snackbarHostState.value.showSnackbar("复制成功","知道了")
+            scope.launch {
+                snack.value.showSnackbar("复制成功","知道了")
             }
         })
         Text(
@@ -127,21 +126,7 @@ fun SettingPage() {
             )
         )
 
-        Button(
-            enabled = true,
-            onClick = {
-                //点击监听
-            },
-            shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = Color.White,
-                contentColor = Color.Black
-            )
-        ) {
-            Text(
-                text = "Padding"
-            )
-        }
+
 
 
 

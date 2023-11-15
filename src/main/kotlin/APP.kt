@@ -7,22 +7,21 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import cafe.adriel.voyager.navigator.tab.CurrentTab
-import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
-import cafe.adriel.voyager.navigator.tab.Tab
-import cafe.adriel.voyager.navigator.tab.TabNavigator
+import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
+import cafe.adriel.voyager.navigator.tab.*
 import model.ToastViewModel
-import page.MediaProcessPage
-import page.MigratePage
-import page.SettingPage
+import page.media.MediaProcessTab
+import page.pipeline.PipelineTab
+import page.setting.SettingTab
+import page.tools.ToolsTab
 
+@OptIn(ExperimentalVoyagerApi::class)
 @Preview
 @Composable
 fun App(viewModel: APPViewModel) {
-
     val scaffoldState = rememberScaffoldState()
 
-    TabNavigator(MigratePage) {
+    TabNavigator(PipelineTab) { navigator ->
         Scaffold(
             scaffoldState = scaffoldState,
             content = {
@@ -32,9 +31,10 @@ fun App(viewModel: APPViewModel) {
                 BottomNavigation(
                     backgroundColor = MaterialTheme.colors.primarySurface,
                 ) {
-                    TabNavigationItem(MigratePage)
-                    TabNavigationItem(MediaProcessPage)
-                    TabNavigationItem(SettingPage)
+                    TabNavigationItem(PipelineTab)
+                    TabNavigationItem(MediaProcessTab)
+                    TabNavigationItem(ToolsTab)
+                    TabNavigationItem(SettingTab)
                 }
             },
 //            floatingActionButton = {
@@ -53,7 +53,7 @@ fun App(viewModel: APPViewModel) {
         ) {
             SnackbarHost(
                 modifier = Modifier.fillMaxWidth(),
-                hostState = state.snackbarHostState.value
+                hostState = state.snack.value
             )
         }
     }
@@ -72,14 +72,6 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
         icon = { tab.options.icon?.let { Icon(painter = it, contentDescription = tab.options.title) } }
     )
 }
-
-//            MainScope().launch {
-//                val clipboard = LocalClipboardManager.current
-//                clipboard.setText(realPath)
-//                Toast("复制成功")
-//            }
-
-
 
 
 

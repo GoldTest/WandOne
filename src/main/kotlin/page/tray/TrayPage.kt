@@ -1,6 +1,7 @@
-package page
+package page.tray
 
 import APPViewModel
+import APP_WINDOW_TITLE
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.ApplicationScope
@@ -20,7 +21,7 @@ fun Tray(scope: ApplicationScope) {
 
     scope.Tray(state = trayState,
         icon = icon,
-        tooltip = "WandOne",
+        tooltip = APP_WINDOW_TITLE,
         onAction = { APPViewModel.isVisible.value = true },
         menu = {
             Item(

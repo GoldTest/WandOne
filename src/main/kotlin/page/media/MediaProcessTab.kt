@@ -1,6 +1,6 @@
-package page
+package page.media
 
-import MEDIA_MERGE
+import TAB_MEDIA_MERGE
 import PAGE_END
 import PAGE_START
 import androidx.compose.desktop.ui.tooling.preview.Preview
@@ -18,13 +18,13 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 
 
-object MediaProcessPage : Tab {
-    private fun readResolve(): Any = MediaProcessPage
+object MediaProcessTab : Tab {
+    private fun readResolve(): Any = MediaProcessTab
 
     override val options: TabOptions
         @Composable
         get() {
-            val title = MEDIA_MERGE
+            val title = TAB_MEDIA_MERGE
             val icon = painterResource("icons/mergeTwo.svg")
 
             return remember {

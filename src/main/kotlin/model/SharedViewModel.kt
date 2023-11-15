@@ -6,6 +6,9 @@ import FILE_MIGRATE_MANUAL
 import FILE_MIGRATE_START_SERVICE
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import service.file.FileMigrationService
 
 object FileMigrateViewModel{
@@ -15,5 +18,8 @@ object FileMigrateViewModel{
     val fileMigrationService = FileMigrationService(DEFAULT_DOUYIN_SOURCE_FOLDER, DEFAULT_DOUYIN_DEST_FOLDER, this)
 }
 object ToastViewModel{
-    val snackbarHostState = mutableStateOf(SnackbarHostState())
+    val snack = mutableStateOf(SnackbarHostState())
+}
+object SharedInstance{
+    val scope = CoroutineScope(Dispatchers.IO + Job())
 }
