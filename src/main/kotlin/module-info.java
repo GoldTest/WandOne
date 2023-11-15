@@ -20,4 +20,7 @@ module WandOne.main {
     requires ui.tooling.preview.desktop;
     requires voyager.navigator.desktop;
     requires kotlinx.coroutines.core;
+    requires exposed.core;
+    requires kotlinx.serialization.core;
+    requires kotlinx.serialization.json;
 }

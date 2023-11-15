@@ -23,12 +23,11 @@ import kotlinx.coroutines.launch
 import model.SharedInstance
 import model.ToastViewModel
 import page.pipeline.CreateNodes.currentPipeline
-import page.pipeline.CreateNodes.inputNode
+import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
-import page.pipeline.PipeLineViewModel.pipelines
-import pipeline.InputMultiFolderNode
-import pipeline.Node
-import pipeline.Pipeline
+import model.Node
+import model.Pipeline
+import page.pipeline.PipeLineViewModel.pipelineService
 
 data class AddPipeLineScreen(
     val pipeline: Pipeline? = null
@@ -42,14 +41,14 @@ data class AddPipeLineScreen(
         LifecycleEffect(
             onStarted = {
                 if (pipeline != null) {
-                    val input = pipeline.input
-                    if (input is InputMultiFolderNode) inputNode.value = input
+                    inputNodes.clear()
+                    inputNodes.addAll(pipeline.inputs)
                     processNodes.clear()
                     processNodes.addAll(pipeline.nodes)
                 }
             },
             onDisposed = {
-                inputNode.value.clear()
+                inputNodes.clear()
                 processNodes.clear()
             }
         )
@@ -58,6 +57,7 @@ data class AddPipeLineScreen(
         val name = remember { mutableStateOf<String>("默认管线") }
         currentPipeline.value.name = name.value
         Column(modifier = Modifier.padding(start = PAGE_START, end = PAGE_END)) {
+            Spacer(modifier = Modifier.height(8.dp))
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth()
@@ -84,7 +84,7 @@ data class AddPipeLineScreen(
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1f)) {
                         Button(enabled = navigator.canPop and currentPipeline.value.savable(),
                             onClick = {
-                                pipelines.add(currentPipeline.value.deepCopy())
+                                pipelineService.createPipeline(currentPipeline.value)
                                 navigator.pop()
                             }) {
                             Text("保存")
@@ -94,9 +94,12 @@ data class AddPipeLineScreen(
                 }
 
                 Row {
-                    Button(onClick = {
-                        bottomSheetNavigator.show(InputNodeScreen())
-                    }) {
+                    Button(
+                        enabled = inputNodes.size == 0,
+                        onClick = {
+                            bottomSheetNavigator.show(InputNodeScreen())
+                        }
+                    ) {
                         Text("输入节点")
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -108,14 +111,14 @@ data class AddPipeLineScreen(
                 }
             }
 
-            if (inputNode.value.sourceFolderList.isNotEmpty()) {
+            if (inputNodes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("输入：")
-                EasyList(inputNode.value.sourceFolderList, onRemove = {
-                    inputNode.value.sourceFolderList.remove(it)
+                EasyList(inputNodes, onRemove = {
+                    inputNodes.remove(it)
                 })
                 Spacer(modifier = Modifier.height(12.dp))
-                if (inputNode.value.sourceFolderList.size > 3) {
+                if (inputNodes.size > 3) {
                     SharedInstance.scope.launch {
                         ToastViewModel.snack.value.showSnackbar(
                             "已经很多了，试试再加个规则进行管理吧",

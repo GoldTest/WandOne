@@ -2,16 +2,18 @@ package page.pipeline
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import pipeline.*
+import model.*
+import model.Database.database
 
 object PipeLineViewModel {
-    val pipelines = mutableStateListOf<Pipeline>()
+    val pipelineService = PipelineService(database)
+    val pipelines = pipelineService.pipelineFlow
 }
 
 object CreateNodes {
-    val inputNode = mutableStateOf(InputMultiFolderNode())
+    val inputNodes = mutableStateListOf<InputNode>()
     val processNodes = mutableStateListOf<ProcessNode>()
-    val currentPipeline = mutableStateOf(Pipeline(input = inputNode.value, nodes = processNodes))
+    val currentPipeline = mutableStateOf(Pipeline(inputs = inputNodes, nodes = processNodes))
 }
 
 val defaultBiliNodes = mutableListOf<ProcessNode>()

@@ -5,10 +5,7 @@ import PAGE_START
 import PAGE_TOP
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,57 +17,14 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
+import model.*
 import model.SharedInstance.scope
 import model.ToastViewModel.snack
-import page.pipeline.CreateNodes.inputNode
+import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
-import pipeline.*
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
 
-
-class InputNodeScreen : Screen {
-    @Composable
-    override fun Content() {
-
-        val navigator = LocalNavigator.currentOrThrow
-
-        Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 550.dp)
-                .padding(start = PAGE_START, end = PAGE_END, top = PAGE_TOP)
-        ) {
-            Row {
-                Button(
-                    onClick = {
-                        SwingUtilities.invokeLater {
-                            val fileChooser = JFileChooser()
-                            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                            fileChooser.setDialogTitle("选择监测文件夹")
-                            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
-                            fileChooser.setAcceptAllFileFilterUsed(false)
-                            fileChooser.isVisible = true
-                            val result = fileChooser.showOpenDialog(null)
-                            if (result == JFileChooser.APPROVE_OPTION) {
-                                inputNode.value.sourceFolderList.add(fileChooser.selectedFile.toPath().toString())
-                            }
-                        }
-                    },
-                ) {
-                    Text("文件夹源")
-                }
-                Spacer(modifier = Modifier.weight(1f))
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            EasyList(inputNode.value.sourceFolderList, onRemove = {
-                inputNode.value.sourceFolderList.remove(it)
-            })
-            if (inputNode.value.sourceFolderList.size > 3) {
-                scope.launch { snack.value.showSnackbar("已经够多源文件夹了，试试再创建个管线吧") }
-            }
-        }
-    }
-
-}
 
 class NodeScreen : Screen {
     @Composable
@@ -129,6 +83,68 @@ class NodeScreen : Screen {
     }
 }
 
+class InputNodeScreen : Screen {
+    @Composable
+    override fun Content() {
+
+        val navigator = LocalBottomSheetNavigator.current
+
+        val input = remember { InputMultiFolderNode() }
+        val folders = remember { mutableStateListOf<String>() }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 550.dp)
+                .padding(start = PAGE_START, end = PAGE_END, top = PAGE_TOP)
+        ) {
+            Row {
+                Button(
+                    onClick = {
+                        SwingUtilities.invokeLater {
+                            val fileChooser = JFileChooser()
+                            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                            fileChooser.setDialogTitle("选择监测文件夹")
+                            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                            fileChooser.setAcceptAllFileFilterUsed(false)
+                            fileChooser.isVisible = true
+                            val result = fileChooser.showOpenDialog(null)
+                            if (result == JFileChooser.APPROVE_OPTION) {
+                                val path = fileChooser.selectedFile.toPath().toString()
+                                if (folders.contains(path)) {
+                                    scope.launch { snack.value.showSnackbar("文件夹重复了", "知道了") }
+                                } else {
+                                    folders.add(path)
+                                }
+                            }
+                        }
+                    },
+                ) {
+                    Text("文件夹源")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Button(
+                    enabled = folders.isNotEmpty(),
+                    onClick = {
+                        input.sourceFolderList.clear()
+                        input.sourceFolderList.addAll(folders)
+                        inputNodes.add(input)
+                        navigator.hide()
+                    }
+                ) {
+                    Text("保存")
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            EasyList(folders, onRemove = {
+                folders.remove(it)
+            })
+            if (folders.size > 3) {
+                scope.launch { snack.value.showSnackbar("已经够多源文件夹了，试试再创建个管线吧") }
+            }
+        }
+    }
+
+}
+
 @Composable
 fun MatchNodeScreen(
     end: MutableState<Boolean>,
@@ -152,7 +168,10 @@ fun MatchNodeScreen(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LabelWithRadio("全部", 3, rule0) {
-                val localNode = MatchNameNode(mode = NameMatchMode.ALL_MODE, containDirectory = containDirectory.value)
+                val localNode = MatchNameNode(
+                    mode = NameMatchMode.ALL_MODE,
+                    containDirectory = containDirectory.value
+                )
                 currentNode.value = localNode
                 end.value = true
             }

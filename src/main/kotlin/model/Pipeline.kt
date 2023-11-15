@@ -1,6 +1,8 @@
-package pipeline
+package model
 
 import androidx.compose.runtime.mutableStateListOf
+import kotlinx.serialization.Transient
+import kotlinx.serialization.Serializable
 import java.io.File
 
 
@@ -21,21 +23,24 @@ import java.io.File
  * //目标文件夹
  */
 
+@Serializable
 data class Pipeline(
     var name: String = "管线",
     var runningState: Boolean = false,
-    var input: InputNode,
+    val singleInput: Boolean = true,
+    var inputs: MutableList<InputNode>,
     var nodes: MutableList<ProcessNode>
 ) {
 
     val service = false
 
     fun savable(): Boolean {
-        return input.savable() // todo 记得加上and nodes.isNotEmpty()
+        return inputs.isNotEmpty() and nodes.isNotEmpty()
     }
 
     fun execute(realInput: String) {
-        input.process {
+
+        inputs.first().process {
             var processedData: Any = it
             nodes.forEach nodeLoop@{ node ->
                 processedData = node.process(processedData)
@@ -45,29 +50,27 @@ data class Pipeline(
             }
         }
     }
-
-    fun deepCopy(): Pipeline {
-        return this.copy(
-            name = name,
-            runningState = runningState,
-            input = this.input,
-            nodes = this.nodes
-        )
-    }
 }
 
+interface Describe {
+    val nodeName: String
+        get() = "default describe"
 
-sealed class Node {
-    open var nodeName: String = "name"
+    fun describe(): String = nodeName
+}
+
+@Serializable
+sealed class Node : Describe {
     open fun clear() {}
-    open fun describe(): String = nodeName
 }
 
+@Serializable
 sealed class InputNode : Node() {
     open fun process(result: (File) -> Unit) {}
     open fun savable(): Boolean = false
 }
 
+@Serializable
 sealed class ProcessNode : Node() {
     open fun process(input: Any): Any = input
 }
@@ -77,17 +80,21 @@ interface Match {
     open fun operate(input: Any): Any = input
 }
 
+@Serializable
 sealed class MatchNode : ProcessNode(), Match {
     override fun process(input: Any): Any {
         return if (rule(input)) operate(input) else false
     }
 }
 
-class InputMultiFolderNode() : InputNode() {
-    override var nodeName: String
-        get() = "文件夹监测节点"
-        set(value) {}
-    val sourceFolderList = mutableStateListOf<String>()
+@Serializable
+class InputMultiFolderNode(
+) : InputNode() {
+
+    override val nodeName: String = "文件夹监测节点"
+
+    val sourceFolderList = mutableListOf<String>()
+
     override fun process(result: (File) -> Unit) {
         sourceFolderList.forEach { folderPath ->
             val folder = File(folderPath)
@@ -106,18 +113,20 @@ class InputMultiFolderNode() : InputNode() {
     }
 }
 
-
+@Serializable
 enum class NameMatchMode {
     ALL_MODE, EASY_MODE, REGEX_MODE
 }
 
+@Serializable
 enum class NameMatchSubMode {
     PREFIX, CONTAIN, SUFFIX
 }
 
+@Serializable
 class MatchNameNode(
     val matchString: String? = null,
-    val matchRegex: Regex? = null,
+    val matchRegex: String? = null,
     val mode: NameMatchMode = NameMatchMode.EASY_MODE,
     val subMode: NameMatchSubMode = NameMatchSubMode.CONTAIN,
     val forceCondition: Boolean = false,
@@ -144,7 +153,7 @@ class MatchNameNode(
         return when (mode) {
             NameMatchMode.ALL_MODE -> true
             NameMatchMode.EASY_MODE -> matchString?.let { matchByString(path, it) } ?: false
-            NameMatchMode.REGEX_MODE -> matchRegex?.let { path.matches(it) } ?: false
+            NameMatchMode.REGEX_MODE -> matchRegex?.let { path.matches(Regex(matchRegex)) } ?: false
         }
 
     }
@@ -155,7 +164,7 @@ class MatchNameNode(
 
     override fun describe(): String {
         return when (mode) {
-            NameMatchMode.ALL_MODE -> "全部文件匹配"
+            NameMatchMode.ALL_MODE -> "全部文件匹配 $containDirectory"
             NameMatchMode.EASY_MODE -> "简单文件名匹配：$matchString"
             NameMatchMode.REGEX_MODE -> "正则匹配：$matchRegex"
         }
@@ -178,26 +187,32 @@ class MatchNameNode(
     }
 }
 
+@Serializable
 class MatchTypeNode() : MatchNode() {
 
 }
 
+@Serializable
 class MatchSizeNode() : MatchNode() {
 
 }
 
+@Serializable
 class MatchPairMediaNode() : MatchNode() {
 
 }
 
+@Serializable
 class MatchMultiFileNode() : MatchNode() {
 
 }
 
+@Serializable
 class ProcessRenameNode() : ProcessNode() {
 
 }
 
+@Serializable
 class ProcessSaveNode() : ProcessNode() {
 
     override fun process(input: Any): Any {
@@ -207,16 +222,19 @@ class ProcessSaveNode() : ProcessNode() {
 }
 
 
+@Serializable
 class ProcessMediaMergeNode() : ProcessNode() {
 
 }
 
+@Serializable
 class ProcessMultiFileNode() : ProcessNode() {
 
 }
 
+@Serializable
 class ProcessMoveNode : ProcessNode() {
-    val destFolderList = mutableStateListOf<String>()
+    //    val destFolderList = mutableStateListOf<String>()
     val singleFolderSave = false
 
 }

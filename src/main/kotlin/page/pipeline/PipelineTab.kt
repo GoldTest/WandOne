@@ -6,15 +6,18 @@ import PAGE_END
 import PAGE_START
 import TAB_PIPELINE
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
@@ -28,7 +31,8 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import func.commonChangeFolder
 import model.FileMigrateViewModel
-import pipeline.Pipeline
+import model.Pipeline
+import page.pipeline.PipeLineViewModel.pipelines
 
 
 object PipelineTab : Tab {
@@ -72,6 +76,7 @@ data class PipelinePage(
     val index: Int = 0
 ) : Screen {
     override val key = uniqueScreenKey
+
 
     @Composable
     override fun Content() {
@@ -121,10 +126,12 @@ data class PipelinePage(
             }) {
                 Text("添加规则")
             }
-            Text("ruls:${PipeLineViewModel.pipelines.size}")
+            Text("ruls:${pipelines.value.size}")
 
-            if (PipeLineViewModel.pipelines.isNotEmpty()) {
-                PipelineList(PipeLineViewModel.pipelines)
+            if (pipelines.value.isNotEmpty()) {
+                PipelineList(pipelines.value) {
+
+                }
             }
         }
     }
@@ -132,26 +139,48 @@ data class PipelinePage(
 
 
 @Composable
-fun PipelineList(pipelines: MutableList<Pipeline>) {
+fun PipelineList(pipelines: MutableList<Pipeline>, onRemove: () -> Unit) {
     if (pipelines.isEmpty()) return
     LazyColumn {
         this.items(pipelines) {
-            Pipeline(it)
+            Pipeline(it) {
+                onRemove.invoke()
+            }
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
 
 @Composable
-fun Pipeline(pipeline: Pipeline) {
+fun Pipeline(pipeline: Pipeline, onRemove: () -> Unit) {
 
-    Column {
-        Text(pipeline.name)
-        Text("in"+pipeline.input.nodeName)
-        Column {
-            println("${pipeline.savable()}")
-            pipeline.nodes.forEach {
-                Text(it.describe())
+    Row(modifier = Modifier.background(Color.Gray)) {
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(pipeline.name)
+
+            Column {
+                pipeline.inputs.forEach {
+                    Text(it.describe())
+                }
             }
+
+            Column {
+                pipeline.nodes.forEach {
+                    Text(it.describe())
+                }
+            }
+
+        }
+
+        Button(
+            shape = CircleShape,
+            onClick = {
+                onRemove.invoke()
+            }
+        ) {
+            Text("-")
         }
     }
+
 }

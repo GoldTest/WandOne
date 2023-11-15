@@ -3,6 +3,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("jvm")
     id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.serialization") version ("1.4.30")
 }
 
 tasks.withType<JavaCompile> {
@@ -27,6 +28,11 @@ dependencies {
     //versions
     val voyagerVersion = "+"
     val exposedVersion = "+"
+    val sqliteVersion = "+" //0.44.1
+    val h2Version = "+"
+    val logbackVersion = "+" //1.2.11
+    val serializeVersion = "+" //1.1.1
+
     //desktop
     implementation(compose.desktop.currentOs)
     //navigator
@@ -37,9 +43,25 @@ dependencies {
 
 //    implementation("org.jetbrains.compose.animation:animation-desktop:1.4.1")
 
+    //Dao
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+
+    //sql driver
+    implementation("org.xerial:sqlite-jdbc:$sqliteVersion")
+    implementation("com.h2database:h2:$h2Version")
+
+    //log
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+//    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+//    implementation("org.apache.logging.log4j:log4j-api:2.14.0")
+//    implementation("org.apache.logging.log4j:log4j-core:2.14.0")
+
+    //serialize
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializeVersion")
+
 
 }
 
