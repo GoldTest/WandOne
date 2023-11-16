@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="0">
+<project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
     <data-source source="LOCAL" name="pipeline" uuid="a23411e8-d833-4326-a9d3-e8ed1a52536d">
       <driver-ref>sqlite.xerial</driver-ref>

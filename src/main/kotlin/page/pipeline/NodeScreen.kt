@@ -13,15 +13,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import model.*
 import model.SharedInstance.scope
 import model.ToastViewModel.snack
 import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
+import java.awt.Dimension
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
 
@@ -91,34 +90,43 @@ class InputNodeScreen : Screen {
 
         val input = remember { InputMultiFolderNode() }
         val folders = remember { mutableStateListOf<String>() }
+        val recurse = remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(min = 550.dp)
                 .padding(start = PAGE_START, end = PAGE_END, top = PAGE_TOP)
         ) {
             Row {
-                Button(
-                    onClick = {
-                        SwingUtilities.invokeLater {
-                            val fileChooser = JFileChooser()
-                            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                            fileChooser.setDialogTitle("选择监测文件夹")
-                            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
-                            fileChooser.setAcceptAllFileFilterUsed(false)
-                            fileChooser.isVisible = true
-                            val result = fileChooser.showOpenDialog(null)
-                            if (result == JFileChooser.APPROVE_OPTION) {
-                                val path = fileChooser.selectedFile.toPath().toString()
-                                if (folders.contains(path)) {
-                                    scope.launch { snack.value.showSnackbar("文件夹重复了", "知道了") }
-                                } else {
-                                    folders.add(path)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = {
+                            SwingUtilities.invokeLater {
+                                val fileChooser = JFileChooser()
+                                fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                                fileChooser.setDialogTitle("选择监测文件夹")
+                                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                                fileChooser.setAcceptAllFileFilterUsed(false)
+                                fileChooser.preferredSize = Dimension(800, 500)
+                                fileChooser.isVisible = true
+                                val result = fileChooser.showOpenDialog(null)
+                                if (result == JFileChooser.APPROVE_OPTION) {
+                                    val path = fileChooser.selectedFile.toPath().toString()
+                                    if (folders.contains(path)) {
+                                        scope.launch { snack.value.showSnackbar("文件夹重复了", "知道了") }
+                                    } else {
+                                        folders.add(path)
+                                    }
                                 }
                             }
-                        }
-                    },
-                ) {
-                    Text("文件夹源")
+                        },
+                    ) {
+                        Text("文件夹源")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("递归子文件夹")
+                    Checkbox(checked = recurse.value, onCheckedChange = {
+                        recurse.value = it
+                    })
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
@@ -126,6 +134,7 @@ class InputNodeScreen : Screen {
                     onClick = {
                         input.sourceFolderList.clear()
                         input.sourceFolderList.addAll(folders)
+                        input.recurse = recurse.value
                         inputNodes.add(input)
                         navigator.hide()
                     }
@@ -151,32 +160,113 @@ fun MatchNodeScreen(
     currentNode: MutableState<ProcessNode?>
 ) {
 
-    val rule0 = remember { mutableStateOf(0) }
-    val rule1 = remember { mutableStateOf(0) }
-    val rule2 = remember { mutableStateOf(0) }
+    val type = remember { mutableStateOf("none") }
+    val nameMatchMode = remember { mutableStateOf(NameMatchMode.None) }
+    val nameMatchSubMode = remember { mutableStateOf(NameMatchSubMode.None) }
+    val fileType = remember { mutableStateOf("none") }
     val text = remember { mutableStateOf("") }
     val containDirectory = remember { mutableStateOf(false) }
+    val forceSubString = remember { mutableStateOf(false) }
 
 
-    fun clearState() {
+    fun updateCurrentNode() {
         currentNode.value = null
-        end.value = false
+        when (type.value) {
+            "all" -> {
+                currentNode.value = MatchNameNode(
+                    mode = NameMatchMode.AllMode,
+                    containDirectory = containDirectory.value
+                )
+            }
+
+            "name" -> {
+                when (nameMatchMode.value) {
+                    NameMatchMode.None, NameMatchMode.AllMode -> {}
+                    NameMatchMode.EasyMode -> {
+                        when (nameMatchSubMode.value) {
+                            NameMatchSubMode.None -> {}
+                            NameMatchSubMode.Prefix -> {
+                                if (text.value.isNotBlank()) {
+                                    currentNode.value = MatchNameNode(
+                                        matchString = text.value,
+                                        mode = NameMatchMode.EasyMode,
+                                        subMode = NameMatchSubMode.Prefix,
+                                        containDirectory = containDirectory.value,
+                                        forceSubString = forceSubString.value
+                                    )
+                                }
+                            }
+
+                            NameMatchSubMode.Contain -> {
+                                if (text.value.isNotBlank()) {
+                                    currentNode.value = MatchNameNode(
+                                        matchString = text.value,
+                                        mode = NameMatchMode.EasyMode,
+                                        subMode = NameMatchSubMode.Contain,
+                                        containDirectory = containDirectory.value,
+                                        forceSubString = forceSubString.value
+                                    )
+                                }
+                            }
+
+                            NameMatchSubMode.Suffix -> {
+                                if (text.value.isNotBlank()) {
+                                    currentNode.value = MatchNameNode(
+                                        matchString = text.value,
+                                        mode = NameMatchMode.EasyMode,
+                                        subMode = NameMatchSubMode.Suffix,
+                                        containDirectory = containDirectory.value,
+                                        forceSubString = forceSubString.value
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    NameMatchMode.RegexMode -> {
+                        if (text.value.isNotBlank()) {
+                            currentNode.value = MatchNameNode(
+                                matchRegex = text.value,
+                                containDirectory = containDirectory.value
+                            )
+                        }
+                    }
+                }
+            }
+
+            "type" -> {
+                when (fileType.value) {
+                    "all" -> {
+                        currentNode.value = MatchTypeNode(
+                            mode = FileType.All
+                        )
+                    }
+                }
+            }
+
+        }
+        end.value = currentNode.value != null
+    }
+
+    LaunchedEffect(
+        type.value,
+        nameMatchMode.value,
+        containDirectory.value,
+        forceSubString.value,
+        fileType.value,
+        nameMatchSubMode.value,
+        text.value
+    ) {
+        updateCurrentNode()
     }
 
     Column(
         modifier = Modifier.fillMaxWidth().heightIn(min = 450.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            LabelWithRadio("全部", 3, rule0) {
-                val localNode = MatchNameNode(
-                    mode = NameMatchMode.ALL_MODE,
-                    containDirectory = containDirectory.value
-                )
-                currentNode.value = localNode
-                end.value = true
-            }
-            LabelWithRadio("文件名", 1, rule0, ::clearState)
-            LabelWithRadio("文件类型", 2, rule0, ::clearState)
+            GenericRadio("all", type, "全部")
+            GenericRadio("name", type, "文件名")
+            GenericRadio("type", type, "文件类型")
             Text("包含文件夹")
             Checkbox(
                 checked = containDirectory.value,
@@ -185,59 +275,54 @@ fun MatchNodeScreen(
                 }
             )
         }
-        when (rule0.value) {
-            1 ->
+        when (type.value) {
+            "all" -> {}
+            "name" -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    LabelWithRadio("简单文件名匹配", 1, rule1, ::clearState)
-                    LabelWithRadio("文件名正则匹配", 2, rule1, ::clearState)
+                    GenericRadio(NameMatchMode.EasyMode, nameMatchMode, "简单文件名匹配")
+                    GenericRadio(NameMatchMode.RegexMode, nameMatchMode, "文件名正则匹配")
                 }
+            }
 
-            2 ->
-                Row {
-                    Text("JPG")
-                    Checkbox(checked = false, onCheckedChange = {})
-                    Text("PNG")
-                    Checkbox(checked = false, onCheckedChange = {})
-                    Text("JPEG")
-                    Checkbox(checked = false, onCheckedChange = {})
+            "type" -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GenericRadio("all", fileType, "全部类型")
                 }
+            }
         }
-        if ((rule0.value == 1)) when (rule1.value) {
-            1 -> {
+        if (type.value == "name") when (nameMatchMode.value) {
+            NameMatchMode.None, NameMatchMode.AllMode -> {}
+            NameMatchMode.EasyMode -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    LabelWithRadio("包含", 1, rule2)
-                    LabelWithRadio("前缀", 2, rule2)
-                    LabelWithRadio("中缀", 3, rule2)
-                    LabelWithRadio("后缀", 4, rule2)
+                    GenericRadio(NameMatchSubMode.Contain, nameMatchSubMode, "包含")
+                    GenericRadio(NameMatchSubMode.Prefix, nameMatchSubMode, "前缀")
+                    GenericRadio(NameMatchSubMode.Suffix, nameMatchSubMode, "后缀")
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    when (rule2.value) {
-                        2 -> Text("是否强制需要前半部分")
-                        3 -> Text("是否强制需要前后部分")
-                        4 -> Text("是否强制需要后半部分")
+                if (nameMatchSubMode.value == NameMatchSubMode.Suffix || nameMatchSubMode.value == NameMatchSubMode.Prefix) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(if (nameMatchSubMode.value == NameMatchSubMode.Prefix) "是否强制需要前半部分" else "是否强制需要后半部分")
+                        Checkbox(
+                            checked = forceSubString.value,
+                            onCheckedChange = { isChecked ->
+                                forceSubString.value = isChecked
+                            })
                     }
-                    when (rule2.value) {
-                        2, 3, 4 -> Checkbox(checked = false, onCheckedChange = {
-
-                        })
-                    }
-
                 }
                 TextField(
                     value = text.value,
                     onValueChange = { text.value = it },
-                    label = { Text(if (rule1.value == 1) "输入简单匹配文字" else "输入正则公式") }
+                    label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
                 )
             }
 
-            2 ->
+            NameMatchMode.RegexMode -> {
                 TextField(
                     value = text.value,
                     onValueChange = { text.value = it },
-                    label = { Text(if (rule1.value == 1) "输入简单匹配文字" else "输入正则公式") }
+                    label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
                 )
+            }
         }
-
     }
 }
 
@@ -246,9 +331,9 @@ fun OperateNodeScreen(result: ((MatchNode) -> Unit)? = null) {
     val operateChooseState = remember { mutableStateOf(0) }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            LabelWithRadio("重命名", 1, operateChooseState)
-            LabelWithRadio("媒体合并", 2, operateChooseState)
-            LabelWithRadio("移动", 3, operateChooseState)
+            GenericRadio(1, operateChooseState, "重命名")
+            GenericRadio(2, operateChooseState, "媒体合并")
+            GenericRadio(3, operateChooseState, "移动")
         }
         when (operateChooseState.value) {
             1 -> {
@@ -270,22 +355,20 @@ fun OperateNodeScreen(result: ((MatchNode) -> Unit)? = null) {
 }
 
 @Composable
-fun LabelWithRadio(
-    text: String,
-    value: Int,
-    state: MutableState<Int>,
-    onBeforeChange: (() -> Unit)? = null,
-    result: ((Int) -> Unit)? = null
+fun <T> GenericRadio(
+    option: T,
+    selectedOption: MutableState<T>,
+    label: String,
+    onOptionSelected: ((T) -> Unit)? = null
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text)
+        Text(label)
         RadioButton(
             modifier = Modifier.padding(0.dp),
-            selected = state.value == value,
+            selected = (selectedOption.value == option),
             onClick = {
-                onBeforeChange?.invoke()
-                state.value = value
-                result?.invoke(state.value)
+                selectedOption.value = option
+                onOptionSelected?.invoke(option)
             }
         )
     }
@@ -302,3 +385,11 @@ fun LabelWithRadio(
 ////                            destNode.destFolderList.add(fileChooser.selectedFile.toPath().toString())
 //            }
 //        }
+
+
+//                println("contain ${containDirectory.value}")
+//                val localNode = MatchNameNode(
+//                    mode = NameMatchMode.ALL_MODE,
+//                    containDirectory = containDirectory.value
+//                )
+//                currentNode.value = localNode

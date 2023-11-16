@@ -12,7 +12,10 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
@@ -29,11 +32,12 @@ import model.Node
 import model.Pipeline
 import page.pipeline.PipeLineViewModel.pipelineService
 
-data class AddPipeLineScreen(
+data class PipelineScreen(
     val pipeline: Pipeline? = null
 ) : Screen {
     override val key = uniqueScreenKey
 
+    var update = false
 
     @Composable
     override fun Content() {
@@ -45,6 +49,12 @@ data class AddPipeLineScreen(
                     inputNodes.addAll(pipeline.inputs)
                     processNodes.clear()
                     processNodes.addAll(pipeline.nodes)
+                    currentPipeline.value.id = pipeline.id
+                    currentPipeline.value.name = pipeline.name
+                    currentPipeline.value.runningState = pipeline.runningState
+                    currentPipeline.value.singleInput = pipeline.singleInput
+
+                    update = true
                 }
             },
             onDisposed = {
@@ -55,7 +65,6 @@ data class AddPipeLineScreen(
         val navigator = LocalNavigator.currentOrThrow
         val bottomSheetNavigator = LocalBottomSheetNavigator.current
         val name = remember { mutableStateOf<String>("默认管线") }
-        currentPipeline.value.name = name.value
         Column(modifier = Modifier.padding(start = PAGE_START, end = PAGE_END)) {
             Spacer(modifier = Modifier.height(8.dp))
             Column {
@@ -84,7 +93,11 @@ data class AddPipeLineScreen(
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1f)) {
                         Button(enabled = navigator.canPop and currentPipeline.value.savable(),
                             onClick = {
-                                pipelineService.createPipeline(currentPipeline.value)
+                                if (update) {
+                                    pipelineService.updatePipeline(currentPipeline.value)
+                                } else {
+                                    pipelineService.createPipeline(currentPipeline.value)
+                                }
                                 navigator.pop()
                             }) {
                             Text("保存")
@@ -106,18 +119,21 @@ data class AddPipeLineScreen(
                     Button(onClick = {
                         bottomSheetNavigator.show(NodeScreen())
                     }) {
-                        Text("处理节点")
+                        Text("操作节点")
                     }
                 }
             }
 
             if (inputNodes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("输入：")
-                EasyList(inputNodes, onRemove = {
+                Text(
+                    text = "输入节点",
+                    style = TextStyle(fontSize = 14.sp, color = Color.Gray)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                ProcessNodeList(inputNodes, onRemove = {
                     inputNodes.remove(it)
                 })
-                Spacer(modifier = Modifier.height(12.dp))
                 if (inputNodes.size > 3) {
                     SharedInstance.scope.launch {
                         ToastViewModel.snack.value.showSnackbar(
@@ -130,7 +146,12 @@ data class AddPipeLineScreen(
 
 
             if (processNodes.isNotEmpty()) {
-                Text("处理：")
+                Spacer(modifier = Modifier.height(if (inputNodes.isNotEmpty()) 24.dp else 12.dp))
+                Text(
+                    text = "操作节点",
+                    style = TextStyle(fontSize = 14.sp, color = Color.Gray)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 ProcessNodeList(processNodes, onRemove = {
                     processNodes.remove(it)
                 })

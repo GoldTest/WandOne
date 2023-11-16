@@ -1,8 +1,7 @@
 package model
 
-import androidx.compose.runtime.mutableStateListOf
-import kotlinx.serialization.Transient
 import kotlinx.serialization.Serializable
+import page.pipeline.PipeLineViewModel.currentNodeDescribe
 import java.io.File
 
 
@@ -25,30 +24,33 @@ import java.io.File
 
 @Serializable
 data class Pipeline(
-    var name: String = "管线",
+    var id: Int = 0,
+    var name: String = "默认管线",
     var runningState: Boolean = false,
-    val singleInput: Boolean = true,
+    var singleInput: Boolean = true,//todo multi input
     var inputs: MutableList<InputNode>,
     var nodes: MutableList<ProcessNode>
 ) {
-
     val service = false
 
     fun savable(): Boolean {
         return inputs.isNotEmpty() and nodes.isNotEmpty()
     }
 
-    fun execute(realInput: String) {
+    fun execute() {
+        if (singleInput) {
 
-        inputs.first().process {
-            var processedData: Any = it
-            nodes.forEach nodeLoop@{ node ->
-                processedData = node.process(processedData)
-
-                //todo 这里操作界面数据，因为要展示，包括日志等
-                if (processedData == false) return@nodeLoop
+            inputs.first().realInput {
+                var processedData: Any = it
+                println("in ${it.path}")
+                nodes.forEach nodeLoop@{ node ->
+                    processedData = node.realProcess(processedData)
+                    //todo 这里操作界面数据，因为要展示，包括日志等
+                    if (processedData == false) return@nodeLoop
+                }
             }
         }
+
     }
 }
 
@@ -59,30 +61,52 @@ interface Describe {
     fun describe(): String = nodeName
 }
 
-@Serializable
-sealed class Node : Describe {
-    open fun clear() {}
+interface Process {
+    open fun process(input: Any): Any = input
+    open fun process(result: (File) -> Unit) = Unit
 }
 
+interface Match {
+    abstract fun rule(input: Any): Boolean
+    abstract fun operate(input: Any): Any
+}
+
+
 @Serializable
-sealed class InputNode : Node() {
-    open fun process(result: (File) -> Unit) {}
+sealed class Node : Describe, Process {
+    open fun clear() {}
     open fun savable(): Boolean = false
 }
 
 @Serializable
-sealed class ProcessNode : Node() {
-    open fun process(input: Any): Any = input
+sealed class InputNode : Node() {
+    fun realInput(result: (File) -> Unit) {
+        preInput()
+        process(result)
+    }
+
+    fun preInput() {
+        currentNodeDescribe.value = describe()
+    }
+
 }
 
-interface Match {
-    open fun rule(input: Any): Boolean = false
-    open fun operate(input: Any): Any = input
+@Serializable
+sealed class ProcessNode : Node(), Process {
+    fun realProcess(input: Any): Any {
+        preProcess()
+        return process(input)
+    }
+
+    fun preProcess() {
+        currentNodeDescribe.value = describe()
+        println("process ${describe()}")
+    }
 }
 
 @Serializable
 sealed class MatchNode : ProcessNode(), Match {
-    override fun process(input: Any): Any {
+    final override fun process(input: Any): Any {
         return if (rule(input)) operate(input) else false
     }
 }
@@ -91,17 +115,26 @@ sealed class MatchNode : ProcessNode(), Match {
 class InputMultiFolderNode(
 ) : InputNode() {
 
-    override val nodeName: String = "文件夹监测节点"
 
     val sourceFolderList = mutableListOf<String>()
+    var recurse = false
 
     override fun process(result: (File) -> Unit) {
         sourceFolderList.forEach { folderPath ->
             val folder = File(folderPath)
             if (folder.exists() && folder.isDirectory) {
-                folder.walk().forEach { result(it) }
+                if (recurse) {
+                    folder.walk().forEach { result(it) }
+                } else {
+                    folder.listFiles()?.forEach { result(it) }
+                }
             }
         }
+    }
+
+    override fun describe(): String {
+        val recurse = if (recurse) "\n递归子文件夹" else ""
+        return "汇聚：\n${sourceFolderList.joinToString("\n")}$recurse"
     }
 
     override fun savable(): Boolean {
@@ -115,26 +148,25 @@ class InputMultiFolderNode(
 
 @Serializable
 enum class NameMatchMode {
-    ALL_MODE, EASY_MODE, REGEX_MODE
+    None, AllMode, EasyMode, RegexMode
 }
 
 @Serializable
 enum class NameMatchSubMode {
-    PREFIX, CONTAIN, SUFFIX
+    None, Prefix, Contain, Suffix
 }
 
 @Serializable
 class MatchNameNode(
     val matchString: String? = null,
     val matchRegex: String? = null,
-    val mode: NameMatchMode = NameMatchMode.EASY_MODE,
-    val subMode: NameMatchSubMode = NameMatchSubMode.CONTAIN,
-    val forceCondition: Boolean = false,
+    val mode: NameMatchMode = NameMatchMode.None,
+    val subMode: NameMatchSubMode = NameMatchSubMode.None,
+    val forceSubString: Boolean = false,
     val containDirectory: Boolean = false
 ) : MatchNode() {
 
     override fun rule(input: Any): Boolean {
-
 
         val path = when (input) {
             is String -> input
@@ -151,9 +183,10 @@ class MatchNameNode(
         }
 
         return when (mode) {
-            NameMatchMode.ALL_MODE -> true
-            NameMatchMode.EASY_MODE -> matchString?.let { matchByString(path, it) } ?: false
-            NameMatchMode.REGEX_MODE -> matchRegex?.let { path.matches(Regex(matchRegex)) } ?: false
+            NameMatchMode.AllMode -> true
+            NameMatchMode.EasyMode -> matchString?.let { matchByString(path, it) } ?: false
+            NameMatchMode.RegexMode -> matchRegex?.let { path.matches(Regex(matchRegex)) } ?: false
+            NameMatchMode.None -> false
         }
 
     }
@@ -163,18 +196,55 @@ class MatchNameNode(
     }
 
     override fun describe(): String {
+        val containDirectory = if (containDirectory) "\n包含文件夹" else ""
+        val matchString = when (mode) {
+            NameMatchMode.None -> {
+                ""
+            }
+
+            NameMatchMode.AllMode -> {
+                ""
+            }
+
+            NameMatchMode.EasyMode -> {
+                when (subMode) {
+                    NameMatchSubMode.None -> {
+                        ""
+                    }
+
+                    NameMatchSubMode.Prefix -> {
+                        "\n前缀匹配：$matchString"
+                    }
+
+                    NameMatchSubMode.Contain -> {
+                        "\n包含匹配：$matchString"
+                    }
+
+                    NameMatchSubMode.Suffix -> {
+                        "\n后缀匹配：$matchString"
+                    }
+                }
+            }
+
+            NameMatchMode.RegexMode -> {
+                "\n正则公式：$matchRegex$containDirectory"
+            }
+        }
+
         return when (mode) {
-            NameMatchMode.ALL_MODE -> "全部文件匹配 $containDirectory"
-            NameMatchMode.EASY_MODE -> "简单文件名匹配：$matchString"
-            NameMatchMode.REGEX_MODE -> "正则匹配：$matchRegex"
+            NameMatchMode.AllMode -> "匹配：全部文件$matchString$containDirectory"
+            NameMatchMode.EasyMode -> "匹配：简单文件名$matchString"
+            NameMatchMode.RegexMode -> "匹配：正则匹配$matchString"
+            NameMatchMode.None -> "无匹配"
         }
     }
 
     private fun matchByString(path: String, matchString: String): Boolean {
         return when (subMode) {
-            NameMatchSubMode.CONTAIN -> path.contains(matchString)
-            NameMatchSubMode.PREFIX -> path.hasPrefix(matchString, forceCondition)
-            NameMatchSubMode.SUFFIX -> path.hasSuffix(matchString, forceCondition)
+            NameMatchSubMode.Contain -> path.contains(matchString)
+            NameMatchSubMode.Prefix -> path.hasPrefix(matchString, forceSubString)
+            NameMatchSubMode.Suffix -> path.hasSuffix(matchString, forceSubString)
+            NameMatchSubMode.None -> false
         }
     }
 
@@ -187,23 +257,62 @@ class MatchNameNode(
     }
 }
 
+enum class FileType {
+    None, All
+}
+
 @Serializable
-class MatchTypeNode() : MatchNode() {
+class MatchTypeNode(
+    val mode: FileType = FileType.None
+) : MatchNode() {
+    override fun rule(input: Any): Boolean {
+        return true
+    }
+
+    override fun operate(input: Any): Any {
+        return input
+    }
+
+    override fun describe(): String {
+        val type = if (mode == FileType.All) "全部类型" else ""
+        return "匹配：$type"
+    }
 
 }
 
 @Serializable
 class MatchSizeNode() : MatchNode() {
+    override fun rule(input: Any): Boolean {
+        return true
+    }
+
+    override fun operate(input: Any): Any {
+        return input
+    }
 
 }
 
 @Serializable
 class MatchPairMediaNode() : MatchNode() {
+    override fun rule(input: Any): Boolean {
+        return true
+    }
+
+    override fun operate(input: Any): Any {
+        return input
+    }
 
 }
 
 @Serializable
 class MatchMultiFileNode() : MatchNode() {
+    override fun rule(input: Any): Boolean {
+        return true
+    }
+
+    override fun operate(input: Any): Any {
+        return input
+    }
 
 }
 

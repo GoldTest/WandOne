@@ -5,6 +5,7 @@ import kotlinx.serialization.encodeToString
 import model.SharedInstance.json
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Database {
@@ -40,12 +41,6 @@ class PipelineService(private val database: Database) {
     }
 
 
-    private fun updatePipelines() {
-        _pipelineFlow.value = transaction {
-            _PipeLine.selectAll().map { toPipeline(it) }.toMutableList()
-        }
-    }
-
     fun createPipeline(pipeline: Pipeline) {
         transaction {
             _PipeLine.insert {
@@ -58,8 +53,36 @@ class PipelineService(private val database: Database) {
         updatePipelines()
     }
 
+    private fun updatePipelines() {
+        _pipelineFlow.value = transaction {
+            _PipeLine.selectAll().map { toPipeline(it) }.toMutableList()
+        }
+    }
+
+    fun updatePipeline(pipeline: Pipeline) {
+        transaction {
+            _PipeLine.update(where = {
+                _PipeLine.id eq pipeline.id
+            }) {
+                it[this.name] = pipeline.name
+                it[this.runningState] = pipeline.runningState
+                it[this.input] = json.encodeToString(pipeline.inputs)
+                it[this.nodes] = json.encodeToString(pipeline.nodes)
+            }
+        }
+        updatePipelines()
+    }
+
+    fun deletePipeline(id: Int) {
+        transaction {
+            _PipeLine.deleteWhere { this.id.eq(id) }
+        }
+        updatePipelines()
+    }
+
     private fun toPipeline(row: ResultRow): Pipeline {
         return Pipeline(
+            id = row[_PipeLine.id],
             name = row[_PipeLine.name],
             runningState = row[_PipeLine.runningState],
             inputs = json.decodeFromString(row[_PipeLine.input]),

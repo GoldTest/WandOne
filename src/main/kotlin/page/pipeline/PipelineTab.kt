@@ -6,20 +6,19 @@ import PAGE_END
 import PAGE_START
 import TAB_PIPELINE
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
@@ -30,8 +29,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import func.commonChangeFolder
+import model.Describe
 import model.FileMigrateViewModel
 import model.Pipeline
+import page.pipeline.PipeLineViewModel.currentNodeDescribe
+import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.PipeLineViewModel.pipelines
 
 
@@ -81,7 +83,7 @@ data class PipelinePage(
     @Composable
     override fun Content() {
         val migrationStatus = remember { mutableStateListOf<String>() }
-
+        val pipelinesLocal by pipelines.collectAsState()
         Column(
             modifier = Modifier.padding(start = PAGE_START, end = PAGE_END),
         ) {
@@ -122,15 +124,16 @@ data class PipelinePage(
             }
             val navigator = LocalNavigator.currentOrThrow
             Button(onClick = {
-                navigator.push(AddPipeLineScreen())
+                navigator.push(PipelineScreen())
             }) {
                 Text("添加规则")
             }
-            Text("ruls:${pipelines.value.size}")
 
-            if (pipelines.value.isNotEmpty()) {
-                PipelineList(pipelines.value) {
-
+            if (pipelinesLocal.isNotEmpty()) {
+                PipelineList(pipelinesLocal, onUpdate = {
+                    pipelineService.updatePipeline(it)
+                }) {
+                    pipelineService.deletePipeline(it)
                 }
             }
         }
@@ -139,12 +142,14 @@ data class PipelinePage(
 
 
 @Composable
-fun PipelineList(pipelines: MutableList<Pipeline>, onRemove: () -> Unit) {
+fun PipelineList(pipelines: MutableList<Pipeline>, onUpdate: ((Pipeline) -> Unit)? = null, onRemove: (Int) -> Unit) {
     if (pipelines.isEmpty()) return
     LazyColumn {
         this.items(pipelines) {
-            Pipeline(it) {
-                onRemove.invoke()
+            Pipeline(it, onUpdate = {
+                onUpdate?.invoke(it)
+            }) {
+                onRemove.invoke(it.id)
             }
             Spacer(modifier = Modifier.height(4.dp))
         }
@@ -152,35 +157,102 @@ fun PipelineList(pipelines: MutableList<Pipeline>, onRemove: () -> Unit) {
 }
 
 @Composable
-fun Pipeline(pipeline: Pipeline, onRemove: () -> Unit) {
+fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemove: () -> Unit) {
+    val navigator = LocalNavigator.currentOrThrow
+    Card(elevation = 4.dp) {
+        Box {
+            Row(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+//                Text(text = pipeline.name, style = MaterialTheme.typography.h6)
+                    if (pipeline.inputs.isNotEmpty()) {
+                        Text("输入节点", style = TextStyle(fontSize = 12.sp, color = Color.Gray))
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
 
-    Row(modifier = Modifier.background(Color.Gray)) {
+                    pipeline.inputs.forEach { input ->
+                        NodeDescribe(input)
+                    }
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(pipeline.name)
+                    if (pipeline.nodes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("操作节点", style = TextStyle(fontSize = 12.sp, color = Color.Gray))
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    pipeline.nodes.forEachIndexed { index, node ->
+                        NodeDescribe(node)
+                        if (index != pipeline.nodes.size - 1) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
+                }
+                Column(verticalArrangement = Arrangement.Bottom) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Button(shape = CircleShape, onClick = {
+                            navigator.push(PipelineScreen(pipeline))
+                        }) {
+                            Text("编辑")
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Button(shape = CircleShape, onClick = {
+                            onRemove.invoke()
+                        }) {
+                            Text("删除")
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("服务模式", fontSize = 12.sp, color = Color.Gray)
+                            Switch(
+                                modifier = Modifier.height(24.dp),
+                                checked = pipeline.runningState,
+                                onCheckedChange = {
+                                    pipeline.runningState = it
+                                    onUpdate?.invoke(pipeline)
+                                })
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Button(onClick = {
+                            pipeline.execute()
+                        }) {
+                            Text("手动执行")
+                        }
 
-            Column {
-                pipeline.inputs.forEach {
-                    Text(it.describe())
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Button(onClick = {
+
+                            navigator.push(RecordScreen(mutableListOf<String>("111","11213123")))
+                        }) {
+                            Text("执行记录")
+                        }
+                    }
+                    Text(currentNodeDescribe.value)
                 }
             }
+            Text(
+                modifier = Modifier.align(alignment = Alignment.BottomEnd).padding(4.dp),
+                text = pipeline.name,
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
 
-            Column {
-                pipeline.nodes.forEach {
-                    Text(it.describe())
-                }
-            }
-
-        }
-
-        Button(
-            shape = CircleShape,
-            onClick = {
-                onRemove.invoke()
-            }
-        ) {
-            Text("-")
         }
     }
+}
 
+@Composable
+fun NodeDescribe(node: Describe) {
+    Row(verticalAlignment = Alignment.Top) {
+        Column {
+            Spacer(modifier = Modifier.height(1.dp))
+            Icon(
+                painter = painterResource("icons/nodes/right_arrow.svg"),
+                contentDescription = "Indicator",
+                modifier = Modifier
+                    .size(16.dp)
+            )
+        }
+
+        Text(text = node.describe(), style = TextStyle(fontSize = 15.sp))
+    }
 }
