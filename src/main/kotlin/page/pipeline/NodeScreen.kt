@@ -4,6 +4,7 @@ import PAGE_END
 import PAGE_START
 import PAGE_TOP
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -500,13 +501,15 @@ fun Rename(
 ) {
     val renameType = remember { mutableStateOf("none") }
     Row {
-        GenericRadio("normal", renameType, "简单")
         GenericRadio(
-            "regexWithPreview",
-            renameType,
+            "normal", renameType, "简单",
             textColor = Color.Red,
             radioColor = Color.Red,
-            label = "正则带预览"
+        )
+        GenericRadio(
+            "regexWithPreview", renameType, "正则带预览",
+            textColor = Color.Red,
+            radioColor = Color.Red
         )
     }
     when (renameType.value) {
@@ -533,7 +536,7 @@ fun EasyRename(
                 if (type.value == EasyRenameMode.Type && ignoreFileType.value) {
                     ignoreFileType.value = false
                 }
-                if(replacement.value.isNotBlank()){
+                if (replacement.value.isNotBlank()) {
                     currentNode.value = ProcessEasyRenameNode(
                         easyRenameMode = type.value,
                         replaceString = replacement.value,
@@ -556,6 +559,8 @@ fun EasyRename(
         updateCurrentNode()
     }
 
+    Text("危险节点，请注意操作，谨慎保存", color = Color.Red)
+    Spacer(modifier = Modifier.height(8.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         GenericRadio(EasyRenameMode.All, type, "全部替换")
         GenericRadio(EasyRenameMode.Prefix, type, "前插入")
@@ -711,8 +716,70 @@ fun Move(
     currentNode: MutableState<ProcessNode?>
 ) {
     val type = remember { mutableStateOf("none") }
-    Row {
-        GenericRadio("normal", type, "移动")
+    val folder = remember { mutableStateOf("") }
+
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        if (folder.value.isNotEmpty()) {
+            currentNode.value = ProcessMoveNode(
+                destFolder = folder.value
+            )
+        }
+        end.value = currentNode.value != null
+    }
+    LaunchedEffect(type.value, folder.value) {
+        updateCurrentNode()
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        GenericRadio("chooseFolder", type, "选择文件夹")
+        GenericRadio("inputFolder", type, "输入文件夹")
+    }
+    when (type.value) {
+        "chooseFolder" -> {
+            Button(
+                enabled = folder.value.isEmpty(),
+                onClick = {
+                    val fileChooser = JFileChooser()
+                    fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                    fileChooser.setDialogTitle("选择移动文件夹")
+                    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                    fileChooser.setAcceptAllFileFilterUsed(false)
+                    fileChooser.preferredSize = Dimension(800, 500)
+                    fileChooser.isVisible = true
+                    val result = fileChooser.showOpenDialog(null)
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        val path = fileChooser.selectedFile.toPath().toString()
+                        folder.value = path
+                    }
+                }) {
+                Text("选择文件夹")
+            }
+        }
+
+        "inputFolder" -> {
+            TextField(
+                value = folder.value,
+                onValueChange = { folder.value = it },
+                label = { Text("输入文件夹") }
+            )
+        }
+
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    if (folder.value.isNotEmpty()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(folder.value, modifier = Modifier.weight(1f))
+            Button(
+                shape = CircleShape,
+                modifier = Modifier.padding(0.dp).size(24.dp),
+                contentPadding = PaddingValues(0.dp),
+                onClick = { folder.value = "" }
+            ) {
+                Text("-")
+            }
+        }
     }
 }
 

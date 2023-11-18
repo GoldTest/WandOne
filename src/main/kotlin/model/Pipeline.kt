@@ -5,6 +5,7 @@ import page.pipeline.PipeLineViewModel.currentNodeDescribe
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.tempLog
 import java.io.File
+import java.nio.file.Files
 
 
 /***
@@ -109,7 +110,7 @@ sealed class ProcessNode : Node(), Process {
         val result = process(input)
         val hit = if (result != false) "Hit" else "Miss"
         tempLog.add("${log()} $hit")
-        return process(input)
+        return result
     }
 
     fun preProcess() {
@@ -197,7 +198,7 @@ class FilterNode(
                     return false
                 }
                 if (input.isDirectory) {
-                    if (filterDirectory) true else false
+                    if (filterDirectory) false else true
                 } else {
                     true
                 }
@@ -466,11 +467,11 @@ class ProcessEasyRenameNode(
     var easyRenameMode: EasyRenameMode = EasyRenameMode.None,
     var replaceString: String,
     var ignoreFileType: Boolean = true,
-    var maxRetryCount: Int = 10
+    var maxRetryCount: Int = 100
 ) : ProcessNode() {
 
     override fun log(): String {
-        return "简单重命名"
+        return "简单重命名 $easyRenameMode"
     }
 
     override fun describe(): String {
@@ -529,22 +530,46 @@ class ProcessEasyRenameNode(
                 when (easyRenameMode) {
                     EasyRenameMode.None -> {}
                     EasyRenameMode.Prefix -> {
-                        result = File(parent, "$replaceString$name$type")
-                        return if (input.renameTo(result)) result else false
+                        var count = 0
+                        while (count <= maxRetryCount) {
+                            val suffix = if (count > 0) "-$count" else ""
+                            var newName = "$replaceString$name$suffix$type"
+                            result = File(parent, newName)
+                            if (!result.exists()) {
+                                return if (input.renameTo(result)) result else false
+                            }
+                            count++
+                        }
+                        return false
                     }
 
                     EasyRenameMode.Suffix -> {
-                        result = if (ignoreFileType) {
-                            File(parent, "$name$replaceString$type")
-                        } else {
-                            File(parent, "$name$type$replaceString")
+                        var count = 0
+                        while (count <= maxRetryCount) {
+                            val suffix = if (count > 0) "-$count" else ""
+                            var newName = if (ignoreFileType) "$name$replaceString$suffix$type" else "$name$type$replaceString$suffix"
+                            result = File(parent, newName)
+                            if (!result.exists()) {
+                                return if (input.renameTo(result)) result else false
+                            }
+                            count++
                         }
-                        return if (input.renameTo(result)) result else false
+                        return false
                     }
 
                     EasyRenameMode.Type -> {
-                        result = File(parent, "$name.$replaceString")
-                        return if (input.renameTo(result)) result else false
+                        var count = 0
+                        while (count <= maxRetryCount) {
+                            val suffix = if (count > 0) "-$count" else ""
+                            val newName = "$name$suffix.$replaceString"
+                            result = File(parent, newName)
+                            if (!result.exists()) {
+                                val renameResult = input.renameTo(result)
+                                return if (renameResult) result else false
+                            }
+                            count++
+                        }
+                        return false
                     }
 
                     EasyRenameMode.All -> {
@@ -553,8 +578,9 @@ class ProcessEasyRenameNode(
                             val suffix = if (count > 0) "-$count" else ""
                             val newName = if (ignoreFileType) "$replaceString$suffix$type" else "$replaceString$suffix"
                             result = File(parent, newName)
-                            if (input.renameTo(result)) {
-                                return result // 成功重命名
+                            if (!result.exists()) {
+                                val renameResult = input.renameTo(result)
+                                return if (renameResult) result else false
                             }
                             count++
                         }
@@ -607,17 +633,6 @@ class ProcessRegexRenameNode(
     }
 }
 
-
-@Serializable
-class ProcessSaveNode() : ProcessNode() {
-
-    override fun process(input: Any): Any {
-
-        return super.process(input)
-    }
-}
-
-
 @Serializable
 class ProcessMediaMergeNode() : ProcessNode() {
 
@@ -629,10 +644,46 @@ class ProcessMultiFileNode() : ProcessNode() {
 }
 
 @Serializable
-class ProcessMoveNode : ProcessNode() {
-    //    val destFolderList = mutableStateListOf<String>()
-    val singleFolderSave = false
+class ProcessMoveNode(
+    val destFolder: String
+) : ProcessNode() {
 
+    val maxRetryCount = 10
+    override fun describe(): String {
+        return "移动到：$destFolder"
+    }
+
+    fun ensurePathExists(pathString: String): Boolean {
+        val path = File(pathString)
+        return if (path.exists()) {
+            path.isDirectory
+        } else {
+            path.mkdirs()
+        }
+    }
+
+    override fun process(input: Any): Any {
+
+        when (input) {
+            is File -> {
+                if (input.exists() && ensurePathExists(destFolder)) {
+                    var destFile = File(destFolder, input.name)
+                    var count = 0
+                    while (destFile.exists() && count <= maxRetryCount) {
+                        count++
+                        val newName = if (input.extension.isNotEmpty())
+                            "${input.nameWithoutExtension}-$count.${input.extension}" else
+                            "${input.nameWithoutExtension}-$count"
+                        destFile = File(destFolder, newName)
+                    }
+
+                    return input.renameTo(destFile)
+                }
+            }
+        }
+
+        return false
+    }
 }
 
 
