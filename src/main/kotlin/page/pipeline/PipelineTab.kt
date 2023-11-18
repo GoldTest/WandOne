@@ -33,8 +33,10 @@ import model.Describe
 import model.FileMigrateViewModel
 import model.Pipeline
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
+import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.PipeLineViewModel.pipelines
+import page.pipeline.PipeLineViewModel.tempLog
 
 
 object PipelineTab : Tab {
@@ -212,6 +214,8 @@ fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemov
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Button(onClick = {
+                            hitLog.clear()
+                            tempLog.clear()
                             pipeline.execute()
                         }) {
                             Text("手动执行")
@@ -220,8 +224,7 @@ fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemov
                         Spacer(modifier = Modifier.width(4.dp))
 
                         Button(onClick = {
-
-                            navigator.push(RecordScreen(mutableListOf<String>("111","11213123")))
+                            navigator.push(RecordScreen())
                         }) {
                             Text("执行记录")
                         }

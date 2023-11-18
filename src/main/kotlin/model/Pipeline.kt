@@ -2,6 +2,8 @@ package model
 
 import kotlinx.serialization.Serializable
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
+import page.pipeline.PipeLineViewModel.hitLog
+import page.pipeline.PipeLineViewModel.tempLog
 import java.io.File
 
 
@@ -39,15 +41,21 @@ data class Pipeline(
 
     fun execute() {
         if (singleInput) {
-
             inputs.first().realInput {
-                var processedData: Any = it
-                println("in ${it.path}")
-                nodes.forEach nodeLoop@{ node ->
-                    processedData = node.realProcess(processedData)
-                    //todo 这里操作界面数据，因为要展示，包括日志等
-                    if (processedData == false) return@nodeLoop
+
+                if (inputs.first().log) {
+                    tempLog.add("输入：${it.path}")
                 }
+
+                var processedData: Any = it
+                for (node in nodes) {
+                    processedData = node.realProcess(processedData)
+                    if (processedData == false) break
+                }
+                if (processedData != false) {
+                    hitLog.add(processedData.toString())
+                }
+                hitLog.add("\n")
             }
         }
 
@@ -59,6 +67,7 @@ interface Describe {
         get() = "default describe"
 
     fun describe(): String = nodeName
+    fun log(): String = nodeName
 }
 
 interface Process {
@@ -80,27 +89,31 @@ sealed class Node : Describe, Process {
 
 @Serializable
 sealed class InputNode : Node() {
+    val log = true
     fun realInput(result: (File) -> Unit) {
         preInput()
         process(result)
     }
 
     fun preInput() {
-        currentNodeDescribe.value = describe()
+        currentNodeDescribe.value = describe() //todo clean
     }
 
 }
 
 @Serializable
 sealed class ProcessNode : Node(), Process {
+    val log = true
     fun realProcess(input: Any): Any {
         preProcess()
+        val result = process(input)
+        val hit = if (result != false) "Hit" else "Miss"
+        tempLog.add("${log()} $hit")
         return process(input)
     }
 
     fun preProcess() {
-        currentNodeDescribe.value = describe()
-        println("process ${describe()}")
+        currentNodeDescribe.value = log()
     }
 }
 
@@ -153,7 +166,50 @@ enum class NameMatchMode {
 
 @Serializable
 enum class NameMatchSubMode {
-    None, Prefix, Contain, Suffix
+    None, Prefix, Middle, Contain, Suffix
+}
+
+@Serializable
+enum class RegexType {
+    None, Contain, Match
+}
+
+@Serializable
+class FilterNode(
+    val filterHiddenFile: Boolean = true,
+    val filterDirectory: Boolean = false,
+) : MatchNode() {
+
+    override fun describe(): String {
+        return "过滤：${if (filterDirectory) "文件夹 " else ""}${if (filterHiddenFile) "隐藏文件 " else ""}"
+    }
+
+    override fun log(): String {
+        return "过滤器节点"
+    }
+
+    override fun rule(input: Any): Boolean {
+        return when (input) {
+            is String -> return true
+            is File -> {
+                if (!input.exists()) return false
+                if (filterHiddenFile && input.isHidden) {
+                    return false
+                }
+                if (input.isDirectory) {
+                    if (filterDirectory) true else false
+                } else {
+                    true
+                }
+            }
+
+            else -> return false
+        }
+    }
+
+    override fun operate(input: Any): Any {
+        return input
+    }
 }
 
 @Serializable
@@ -162,8 +218,10 @@ class MatchNameNode(
     val matchRegex: String? = null,
     val mode: NameMatchMode = NameMatchMode.None,
     val subMode: NameMatchSubMode = NameMatchSubMode.None,
+    val filterPurePath: Boolean = true,
     val forceSubString: Boolean = false,
-    val containDirectory: Boolean = false
+    val caseSensitive: Boolean = false,
+    val regexType: RegexType = RegexType.None
 ) : MatchNode() {
 
     override fun rule(input: Any): Boolean {
@@ -172,11 +230,7 @@ class MatchNameNode(
             is String -> input
             is File -> {
                 if (!input.exists()) return false
-                if (input.isDirectory) {
-                    if (containDirectory) input.path else return false
-                } else {
-                    input.path
-                }
+                input.path
             }
 
             else -> return false
@@ -184,25 +238,45 @@ class MatchNameNode(
 
         return when (mode) {
             NameMatchMode.AllMode -> true
-            NameMatchMode.EasyMode -> matchString?.let { matchByString(path, it) } ?: false
-            NameMatchMode.RegexMode -> matchRegex?.let { path.matches(Regex(matchRegex)) } ?: false
+            NameMatchMode.EasyMode -> matchString?.let {
+                return if (filterPurePath) {
+                    val file = File(path).nameWithoutExtension
+                    matchByString(file, it)
+                } else {
+                    matchByString(path, it)
+                }
+            } ?: false
+
+            NameMatchMode.RegexMode -> matchRegex?.let {
+                return if (filterPurePath) {
+                    val file = File(path).name
+                    return if (regexType == RegexType.Match) {
+                        file.matches(Regex(matchRegex))
+                    } else {
+                        file.contains(Regex(matchRegex))
+                    }
+                } else {
+                    path.matches(Regex(matchRegex))
+                }
+            } ?: false
+
             NameMatchMode.None -> false
         }
 
     }
 
     override fun operate(input: Any): Any {
-        return if (input is String) File(input) else input
+        //default 只做个过滤
+        return if (input is String) {
+            File(input).takeIf { it.exists() } ?: false
+        } else {
+            input
+        }
     }
 
     override fun describe(): String {
-        val containDirectory = if (containDirectory) "\n包含文件夹" else ""
         val matchString = when (mode) {
-            NameMatchMode.None -> {
-                ""
-            }
-
-            NameMatchMode.AllMode -> {
+            NameMatchMode.None, NameMatchMode.AllMode -> {
                 ""
             }
 
@@ -223,48 +297,84 @@ class MatchNameNode(
                     NameMatchSubMode.Suffix -> {
                         "\n后缀匹配：$matchString"
                     }
+
+                    NameMatchSubMode.Middle -> {
+                        "\n中缀匹配：$matchString"
+                    }
                 }
             }
 
             NameMatchMode.RegexMode -> {
-                "\n正则公式：$matchRegex$containDirectory"
+                "\n正则公式：$matchRegex"
             }
         }
 
         return when (mode) {
-            NameMatchMode.AllMode -> "匹配：全部文件$matchString$containDirectory"
+            NameMatchMode.AllMode -> "匹配：全部文件$matchString"
             NameMatchMode.EasyMode -> "匹配：简单文件名$matchString"
             NameMatchMode.RegexMode -> "匹配：正则匹配$matchString"
             NameMatchMode.None -> "无匹配"
         }
     }
 
+    override fun log(): String {
+        return "匹配节点"
+    }
+
     private fun matchByString(path: String, matchString: String): Boolean {
         return when (subMode) {
-            NameMatchSubMode.Contain -> path.contains(matchString)
-            NameMatchSubMode.Prefix -> path.hasPrefix(matchString, forceSubString)
-            NameMatchSubMode.Suffix -> path.hasSuffix(matchString, forceSubString)
+            NameMatchSubMode.Contain -> path.contains(matchString, !caseSensitive)
+            NameMatchSubMode.Prefix -> {
+                if (forceSubString) {
+                    (path.length > matchString.length) && path.startsWith(matchString, ignoreCase = !caseSensitive)
+                } else {
+                    path.startsWith(matchString, ignoreCase = !caseSensitive)
+                }
+            }
+
+            NameMatchSubMode.Suffix -> {
+                if (forceSubString) {
+                    (path.length > matchString.length) && path.endsWith(matchString, ignoreCase = !caseSensitive)
+                } else {
+                    path.endsWith(matchString, ignoreCase = !caseSensitive)
+                }
+            }
+
+            NameMatchSubMode.Middle -> {
+                var result = false
+                if (matchString.isEmpty() || path.length <= matchString.length) result = false
+                var index = path.indexOf(matchString, ignoreCase = !caseSensitive)
+                while (index != -1) {
+                    if (index > 0 && index + matchString.length < path.length) result = true
+                    index = path.indexOf(matchString, index + 1, ignoreCase = !caseSensitive)
+                }
+
+                if (forceSubString) {
+                    result
+                } else {
+                    path.contains(matchString, !caseSensitive)
+                }
+            }
+
             NameMatchSubMode.None -> false
         }
-    }
-
-    private fun String.hasPrefix(prefix: String, requireExtra: Boolean): Boolean {
-        return startsWith(prefix) && (!requireExtra || length > prefix.length)
-    }
-
-    private fun String.hasSuffix(suffix: String, requireExtra: Boolean): Boolean {
-        return endsWith(suffix) && (!requireExtra || length > suffix.length)
     }
 }
 
 enum class FileType {
-    None, All
+    None, All, Audio, Video, Pic, Document, Zip, Custom
 }
 
 @Serializable
 class MatchTypeNode(
     val mode: FileType = FileType.None
 ) : MatchNode() {
+
+
+    fun types() {
+
+    }
+
     override fun rule(input: Any): Boolean {
         return true
     }
@@ -299,27 +409,204 @@ class MatchPairMediaNode() : MatchNode() {
     }
 
     override fun operate(input: Any): Any {
-        return input
+        return Pair(input, null)
     }
 
 }
 
+
 @Serializable
-class MatchMultiFileNode() : MatchNode() {
+class MatchMultiFileNode(
+) : MatchNode() {
+    //1,pair
+    //2,serial
+
     override fun rule(input: Any): Boolean {
-        return true
+        return input is File && input.exists()
     }
 
+    fun matchPairFile(filePath: String): File? {
+        return File(filePath).listFiles { file ->
+            pairRule(file.name)
+        }?.firstOrNull()
+    }
+
+    fun pairRule(name: String): Boolean {
+        return false
+    }
+
+    //todo 所有匹配节点和操作节点都校验有效性
     override fun operate(input: Any): Any {
-        return input
+        return when (input) {
+            is File -> {
+                val directory = input.parentFile
+                val name = input.nameWithoutExtension
+
+                val matchedFile = matchPairFile(input.path)
+                return if (matchedFile != null) {
+                    Pair(input, matchedFile)
+                } else {
+                    false
+                }
+            }
+
+            else -> false
+        }
+    }
+}
+
+
+@Serializable
+enum class EasyRenameMode {
+    None, All, Prefix, Suffix, Type
+}
+
+@Serializable
+class ProcessEasyRenameNode(
+    var easyRenameMode: EasyRenameMode = EasyRenameMode.None,
+    var replaceString: String,
+    var ignoreFileType: Boolean = true,
+    var maxRetryCount: Int = 10
+) : ProcessNode() {
+
+    override fun log(): String {
+        return "简单重命名"
+    }
+
+    override fun describe(): String {
+        val desc = when (easyRenameMode) {
+            EasyRenameMode.None -> "none"
+            EasyRenameMode.Prefix -> "\n内容前插入：$replaceString"
+            EasyRenameMode.Suffix -> "\n内容后插入：$replaceString"
+            EasyRenameMode.Type -> "\n类型替换为：$replaceString"
+            EasyRenameMode.All -> "\n内容替换为：$replaceString"
+        }
+
+        return "简单重命名：$desc"
+    }
+
+    override fun process(input: Any): Any {
+        var result = input
+        when (input) {
+            is String -> {
+                val lastDotIndex = input.lastIndexOf('.')
+                result = when (easyRenameMode) {
+                    EasyRenameMode.None -> input
+                    EasyRenameMode.Prefix -> {
+                        replaceString + input
+                    }
+
+                    EasyRenameMode.Suffix -> {
+                        if (lastDotIndex != -1 && ignoreFileType) {
+                            input.substring(0, lastDotIndex) + replaceString + input.substring(lastDotIndex)
+                        } else {
+                            input + replaceString
+                        }
+                    }
+
+                    EasyRenameMode.Type -> {
+                        if (lastDotIndex != -1) {
+                            input.substring(0, lastDotIndex + 1) + replaceString
+                        } else {
+                            input
+                        }
+                    }
+
+                    EasyRenameMode.All -> {
+                        replaceString
+                    }
+                }
+            }
+
+            is File -> {
+                if (input.exists().not()) return false
+                val name = input.nameWithoutExtension
+                var type = ""
+                if (input.extension.isNotEmpty()) {
+                    type = "." + input.extension
+                }
+                val parent = input.parent ?: return false
+                when (easyRenameMode) {
+                    EasyRenameMode.None -> {}
+                    EasyRenameMode.Prefix -> {
+                        result = File(parent, "$replaceString$name$type")
+                        return if (input.renameTo(result)) result else false
+                    }
+
+                    EasyRenameMode.Suffix -> {
+                        result = if (ignoreFileType) {
+                            File(parent, "$name$replaceString$type")
+                        } else {
+                            File(parent, "$name$type$replaceString")
+                        }
+                        return if (input.renameTo(result)) result else false
+                    }
+
+                    EasyRenameMode.Type -> {
+                        result = File(parent, "$name.$replaceString")
+                        return if (input.renameTo(result)) result else false
+                    }
+
+                    EasyRenameMode.All -> {
+                        var count = 0
+                        while (count <= maxRetryCount) {
+                            val suffix = if (count > 0) "-$count" else ""
+                            val newName = if (ignoreFileType) "$replaceString$suffix$type" else "$replaceString$suffix"
+                            result = File(parent, newName)
+                            if (input.renameTo(result)) {
+                                return result // 成功重命名
+                            }
+                            count++
+                        }
+                        return false
+                    }
+                }
+            }
+        }
+
+        return result
     }
 
 }
 
 @Serializable
-class ProcessRenameNode() : ProcessNode() {
+class ProcessRegexRenameNode(
+    val regex: String,
+    val replacement: String
+) : ProcessNode() {
 
+    override fun log(): String {
+        return "正则重命名"
+    }
+
+    override fun describe(): String {
+        return "正则重命名：$regex\n替换为：$replacement"
+    }
+
+    override fun process(input: Any): Any {
+
+        var result: Any = input
+        when (input) {
+            is String -> {
+                result = if (regex.isNotEmpty())
+                    input.replace(Regex(regex), replacement) else input
+            }
+
+            is File -> {
+                if (input.exists().not()) return false
+
+                val oldName = input.name
+                val newName = if (regex.isNotEmpty())
+                    oldName.replace(Regex(regex), replacement) else oldName
+                val parent = input.parent ?: return false
+                val newFile = File(parent, newName)
+                return input.renameTo(newFile)
+            }
+        }
+        return result
+    }
 }
+
 
 @Serializable
 class ProcessSaveNode() : ProcessNode() {

@@ -21,66 +21,9 @@ import model.ToastViewModel.snack
 import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
 import java.awt.Dimension
+import java.lang.Exception
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
-
-
-class NodeScreen : Screen {
-    @Composable
-    override fun Content() {
-
-        val navigator = LocalBottomSheetNavigator.current
-
-        val type = remember { mutableStateOf(0) }
-        val end = remember { mutableStateOf(false) }
-        val currentNode = remember { mutableStateOf<ProcessNode?>(null) }
-
-        Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 550.dp)
-                .padding(start = PAGE_START, end = PAGE_END, top = PAGE_TOP)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("节点类型", style = TextStyle(fontSize = 12.sp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (type.value == 1) MaterialTheme.colors.primary else Color.White
-                    ),
-                    onClick = {
-                        type.value = 1
-                    }) {
-                    Text("匹配")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (type.value == 2) MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    type.value = 2
-                }) {
-                    Text("操作")
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Button(enabled = end.value and (currentNode.value != null),
-                    onClick = {
-                        currentNode.value?.let { processNodes.add(it) }
-                        navigator.hide()
-                    }) {
-                    Text("保存")
-                }
-            }
-            when (type.value) {
-                0 -> {}
-                1 -> MatchNodeScreen(end, currentNode)
-
-                2 -> OperateNodeScreen {
-//                    currentNode.value = it
-                }
-            }
-        }
-    }
-}
 
 class InputNodeScreen : Screen {
     @Composable
@@ -154,6 +97,133 @@ class InputNodeScreen : Screen {
 
 }
 
+
+class NodeScreen : Screen {
+    @Composable
+    override fun Content() {
+
+        val navigator = LocalBottomSheetNavigator.current
+
+        val type = remember { mutableStateOf("none") }
+        val end = remember { mutableStateOf(false) }
+        val currentNode = remember { mutableStateOf<ProcessNode?>(null) }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 550.dp)
+                .padding(start = PAGE_START, end = PAGE_END, top = PAGE_TOP)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("节点类型", style = TextStyle(fontSize = 12.sp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (type.value == "filter") MaterialTheme.colors.primary else Color.White
+                    ),
+                    onClick = {
+                        type.value = "filter"
+                    }) {
+                    Text("过滤")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (type.value == "match") MaterialTheme.colors.primary else Color.White
+                    ),
+                    onClick = {
+                        type.value = "match"
+                    }) {
+                    Text("匹配")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (type.value == "multiMatch") MaterialTheme.colors.primary else Color.White
+                ), onClick = {
+                    type.value = "multiMatch"
+                }) {
+                    Text("多匹配")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (type.value == "operate") MaterialTheme.colors.primary else Color.White
+                ), onClick = {
+                    type.value = "operate"
+                }) {
+                    Text("操作")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Button(enabled = end.value and (currentNode.value != null),
+                    onClick = {
+                        currentNode.value?.let { processNodes.add(it) }
+                        navigator.hide()
+                    }) {
+                    Text("保存")
+                }
+            }
+            when (type.value) {
+                "filter" -> FilterNodeScreen(end, currentNode)
+                "match" -> MatchNodeScreen(end, currentNode)
+                "multiMatch" -> MultiMatchNodeScreen(end, currentNode)
+                "operate" -> OperateNodeScreen(end, currentNode)
+            }
+        }
+    }
+}
+
+@Composable
+fun FilterNodeScreen(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+
+    val type = remember { mutableStateOf("none") }
+    val filterDirectory = remember { mutableStateOf(true) }
+    val filterHiddenFile = remember { mutableStateOf(true) }
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        when (type.value) {
+            "none" -> {
+                currentNode.value = FilterNode(
+                    filterDirectory = filterDirectory.value,
+                    filterHiddenFile = filterHiddenFile.value
+                )
+            }
+        }
+        end.value = currentNode.value != null
+    }
+
+    LaunchedEffect(
+        type.value,
+        filterDirectory.value,
+        filterHiddenFile.value,
+    ) {
+        updateCurrentNode()
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 450.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("过滤文件夹")
+            Checkbox(
+                checked = filterDirectory.value,
+                onCheckedChange = { isChecked ->
+                    filterDirectory.value = isChecked
+                }
+            )
+            Text("过滤隐藏文件")
+            Checkbox(
+                checked = filterHiddenFile.value,
+                onCheckedChange = { isChecked ->
+                    filterHiddenFile.value = isChecked
+                }
+            )
+        }
+    }
+}
+
 @Composable
 fun MatchNodeScreen(
     end: MutableState<Boolean>,
@@ -161,101 +231,20 @@ fun MatchNodeScreen(
 ) {
 
     val type = remember { mutableStateOf("none") }
-    val nameMatchMode = remember { mutableStateOf(NameMatchMode.None) }
-    val nameMatchSubMode = remember { mutableStateOf(NameMatchSubMode.None) }
-    val fileType = remember { mutableStateOf("none") }
-    val text = remember { mutableStateOf("") }
-    val containDirectory = remember { mutableStateOf(false) }
-    val forceSubString = remember { mutableStateOf(false) }
-
-
     fun updateCurrentNode() {
         currentNode.value = null
         when (type.value) {
             "all" -> {
                 currentNode.value = MatchNameNode(
-                    mode = NameMatchMode.AllMode,
-                    containDirectory = containDirectory.value
+                    mode = NameMatchMode.AllMode
                 )
             }
-
-            "name" -> {
-                when (nameMatchMode.value) {
-                    NameMatchMode.None, NameMatchMode.AllMode -> {}
-                    NameMatchMode.EasyMode -> {
-                        when (nameMatchSubMode.value) {
-                            NameMatchSubMode.None -> {}
-                            NameMatchSubMode.Prefix -> {
-                                if (text.value.isNotBlank()) {
-                                    currentNode.value = MatchNameNode(
-                                        matchString = text.value,
-                                        mode = NameMatchMode.EasyMode,
-                                        subMode = NameMatchSubMode.Prefix,
-                                        containDirectory = containDirectory.value,
-                                        forceSubString = forceSubString.value
-                                    )
-                                }
-                            }
-
-                            NameMatchSubMode.Contain -> {
-                                if (text.value.isNotBlank()) {
-                                    currentNode.value = MatchNameNode(
-                                        matchString = text.value,
-                                        mode = NameMatchMode.EasyMode,
-                                        subMode = NameMatchSubMode.Contain,
-                                        containDirectory = containDirectory.value,
-                                        forceSubString = forceSubString.value
-                                    )
-                                }
-                            }
-
-                            NameMatchSubMode.Suffix -> {
-                                if (text.value.isNotBlank()) {
-                                    currentNode.value = MatchNameNode(
-                                        matchString = text.value,
-                                        mode = NameMatchMode.EasyMode,
-                                        subMode = NameMatchSubMode.Suffix,
-                                        containDirectory = containDirectory.value,
-                                        forceSubString = forceSubString.value
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    NameMatchMode.RegexMode -> {
-                        if (text.value.isNotBlank()) {
-                            currentNode.value = MatchNameNode(
-                                matchRegex = text.value,
-                                containDirectory = containDirectory.value
-                            )
-                        }
-                    }
-                }
-            }
-
-            "type" -> {
-                when (fileType.value) {
-                    "all" -> {
-                        currentNode.value = MatchTypeNode(
-                            mode = FileType.All
-                        )
-                    }
-                }
-            }
-
         }
         end.value = currentNode.value != null
     }
 
     LaunchedEffect(
         type.value,
-        nameMatchMode.value,
-        containDirectory.value,
-        forceSubString.value,
-        fileType.value,
-        nameMatchSubMode.value,
-        text.value
     ) {
         updateCurrentNode()
     }
@@ -267,129 +256,493 @@ fun MatchNodeScreen(
             GenericRadio("all", type, "全部")
             GenericRadio("name", type, "文件名")
             GenericRadio("type", type, "文件类型")
-            Text("包含文件夹")
-            Checkbox(
-                checked = containDirectory.value,
-                onCheckedChange = { isChecked ->
-                    containDirectory.value = isChecked
-                }
-            )
         }
         when (type.value) {
             "all" -> {}
-            "name" -> {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    GenericRadio(NameMatchMode.EasyMode, nameMatchMode, "简单文件名匹配")
-                    GenericRadio(NameMatchMode.RegexMode, nameMatchMode, "文件名正则匹配")
-                }
-            }
-
-            "type" -> {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    GenericRadio("all", fileType, "全部类型")
-                }
-            }
+            "name" -> MatchName(end, currentNode)
+            "type" -> MatchType(end, currentNode)
         }
-        if (type.value == "name") when (nameMatchMode.value) {
-            NameMatchMode.None, NameMatchMode.AllMode -> {}
+    }
+}
+
+
+@Composable
+fun MatchName(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val nameMatchMode = remember { mutableStateOf(NameMatchMode.None) }
+    val nameMatchSubMode = remember { mutableStateOf(NameMatchSubMode.None) }
+    val text = remember { mutableStateOf("") }
+
+    val filterToFileName = remember { mutableStateOf(true) }
+    val forceSubString = remember { mutableStateOf(false) }
+    val caseSensitive = remember { mutableStateOf(false) }
+    val regexType = remember { mutableStateOf(RegexType.None) }
+
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        when (nameMatchMode.value) {
             NameMatchMode.EasyMode -> {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    GenericRadio(NameMatchSubMode.Contain, nameMatchSubMode, "包含")
-                    GenericRadio(NameMatchSubMode.Prefix, nameMatchSubMode, "前缀")
-                    GenericRadio(NameMatchSubMode.Suffix, nameMatchSubMode, "后缀")
+                if (text.value.isNotBlank()) {
+                    currentNode.value = MatchNameNode(
+                        matchString = text.value,
+                        mode = NameMatchMode.EasyMode,
+                        subMode = nameMatchSubMode.value,
+                        forceSubString = forceSubString.value,
+                        filterPurePath = filterToFileName.value,
+                        caseSensitive = caseSensitive.value
+                    )
                 }
-                if (nameMatchSubMode.value == NameMatchSubMode.Suffix || nameMatchSubMode.value == NameMatchSubMode.Prefix) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (nameMatchSubMode.value == NameMatchSubMode.Prefix) "是否强制需要前半部分" else "是否强制需要后半部分")
-                        Checkbox(
-                            checked = forceSubString.value,
-                            onCheckedChange = { isChecked ->
-                                forceSubString.value = isChecked
-                            })
-                    }
-                }
-                TextField(
-                    value = text.value,
-                    onValueChange = { text.value = it },
-                    label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
-                )
             }
 
             NameMatchMode.RegexMode -> {
-                TextField(
-                    value = text.value,
-                    onValueChange = { text.value = it },
-                    label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
+                if (text.value.isNotBlank()) {
+                    currentNode.value = MatchNameNode(
+                        matchRegex = text.value,
+                        mode = NameMatchMode.RegexMode,
+                        filterPurePath = filterToFileName.value
+                    )
+                }
+            }
+            // 对于 NameMatchMode.None 和 NameMatchMode.AllMode 以及未处理的情况，不执行任何操作
+            NameMatchMode.None, NameMatchMode.AllMode -> {}
+        }
+        end.value = currentNode != null
+    }
+    LaunchedEffect(
+        nameMatchMode.value,
+        forceSubString.value,
+        nameMatchSubMode.value,
+        filterToFileName.value,
+        caseSensitive.value,
+        regexType.value,
+        text.value
+    ) {
+        updateCurrentNode()
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        GenericRadio(NameMatchMode.EasyMode, nameMatchMode, "简单文件名匹配")
+        GenericRadio(NameMatchMode.RegexMode, nameMatchMode, "文件名正则匹配")
+        Text("过滤路径")
+        Checkbox(
+            checked = filterToFileName.value,
+            onCheckedChange = { isChecked ->
+                filterToFileName.value = isChecked
+            }
+        )
+    }
+    when (nameMatchMode.value) {
+        NameMatchMode.None, NameMatchMode.AllMode -> {}
+        NameMatchMode.EasyMode -> {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                GenericRadio(NameMatchSubMode.Contain, nameMatchSubMode, "包含")
+                GenericRadio(NameMatchSubMode.Prefix, nameMatchSubMode, "前缀")
+                GenericRadio(NameMatchSubMode.Middle, nameMatchSubMode, "中缀")
+                GenericRadio(NameMatchSubMode.Suffix, nameMatchSubMode, "后缀")
+                Text("区分大小写")
+                Checkbox(
+                    checked = caseSensitive.value,
+                    onCheckedChange = { isChecked ->
+                        caseSensitive.value = isChecked
+                    }
                 )
+            }
+
+            val forceSubStringDescribe = when (nameMatchSubMode.value) {
+                NameMatchSubMode.None, NameMatchSubMode.Contain -> ""
+                NameMatchSubMode.Prefix -> "是否强制需要后半部分"
+                NameMatchSubMode.Middle -> "是否强制需要前后两部分"
+                NameMatchSubMode.Suffix -> "是否强制需要前半部分"
+            }
+            if (nameMatchSubMode.value != NameMatchSubMode.None && nameMatchSubMode.value != NameMatchSubMode.Contain) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(forceSubStringDescribe)
+                    Checkbox(
+                        checked = forceSubString.value,
+                        onCheckedChange = { isChecked ->
+                            forceSubString.value = isChecked
+                        })
+                }
+            }
+
+
+            TextField(
+                value = text.value,
+                onValueChange = { text.value = it },
+                label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
+            )
+        }
+
+        NameMatchMode.RegexMode -> {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("完全正则匹配")
+                Checkbox(
+                    checked = regexType.value == RegexType.Match,
+                    onCheckedChange = { isChecked ->
+                        if (isChecked) regexType.value = RegexType.Match
+                        else regexType.value = RegexType.Contain
+                    }
+                )
+            }
+            TextField(
+                value = text.value,
+                onValueChange = { text.value = it },
+                label = { Text(if (nameMatchMode.value == NameMatchMode.EasyMode) "输入简单匹配文字" else "输入正则公式") }
+            )
+        }
+    }
+
+}
+
+@Composable
+fun MatchType(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val fileType = remember { mutableStateOf("none") }
+    fun updateCurrentNode() {
+        currentNode.value = null
+
+        when (fileType.value) {
+            "all" -> {
+                currentNode.value = MatchTypeNode(
+                    mode = FileType.All
+                )
+            }
+
+        }
+        end.value = currentNode.value != null
+    }
+    LaunchedEffect(
+        fileType.value,
+    ) {
+        updateCurrentNode()
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        GenericRadio("all", fileType, "全部类型")
+    }
+}
+
+
+@Composable
+fun MultiMatchNodeScreen(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+
+    val type = remember { mutableStateOf("none") }
+    Column(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 450.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            GenericRadio("pair", type, "配对")
+            GenericRadio("serial", type, "系列")
+        }
+        when (type.value) {
+            "pair" -> {
+                Column {
+                    Text("仅接受文件输入，前面的匹配节点请注意")
+                    Row {
+                        Text("源文件分割规则")
+                    }
+                    Row {
+                        Text("目标文件分割规则")
+                    }
+
+                }
+            }
+
+            "serial" -> {
+                Column {
+                    Text("仅接受文件输入")
+                }
             }
         }
     }
 }
 
 @Composable
-fun OperateNodeScreen(result: ((MatchNode) -> Unit)? = null) {
-    val operateChooseState = remember { mutableStateOf(0) }
+fun OperateNodeScreen(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val operateChooseState = remember { mutableStateOf("none") }
+    fun updateOperateNode() {
+        currentNode.value = null
+        end.value = currentNode.value != null
+    }
+    LaunchedEffect(
+        operateChooseState.value
+    ) {
+        updateOperateNode()
+    }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            GenericRadio(1, operateChooseState, "重命名")
-            GenericRadio(2, operateChooseState, "媒体合并")
-            GenericRadio(3, operateChooseState, "移动")
+            GenericRadio("rename", operateChooseState, "重命名")
+            GenericRadio("mediaMerge", operateChooseState, "媒体合并")
+            GenericRadio("move", operateChooseState, "移动")
         }
         when (operateChooseState.value) {
-            1 -> {
-                Text("重命名")
+            "rename" -> Rename(end, currentNode)
+            "mediaMerge" -> MediaMerge(end, currentNode)
+            "move" -> Move(end, currentNode)
+        }
+    }
+}
+
+@Composable
+fun Rename(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val renameType = remember { mutableStateOf("none") }
+    Row {
+        GenericRadio("normal", renameType, "简单")
+        GenericRadio(
+            "regexWithPreview",
+            renameType,
+            textColor = Color.Red,
+            radioColor = Color.Red,
+            label = "正则带预览"
+        )
+    }
+    when (renameType.value) {
+        "normal" -> EasyRename(end, currentNode)
+        "regexWithPreview" -> RegexRename(end, currentNode)
+    }
+}
+
+@Composable
+fun EasyRename(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val type = remember { mutableStateOf(EasyRenameMode.None) }
+    val ignoreFileType = remember { mutableStateOf(true) }
+    val replacement = remember { mutableStateOf("") }
+
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        when (type.value) {
+            EasyRenameMode.None -> {}
+            else -> {
+                if (type.value == EasyRenameMode.Type && ignoreFileType.value) {
+                    ignoreFileType.value = false
+                }
+                if(replacement.value.isNotBlank()){
+                    currentNode.value = ProcessEasyRenameNode(
+                        easyRenameMode = type.value,
+                        replaceString = replacement.value,
+                        ignoreFileType = ignoreFileType.value
+                    )
+                }
             }
+        }
+        end.value = currentNode.value != null
+    }
 
-            2 -> {
-                Text("媒体合并")
+    LaunchedEffect(type.value, replacement.value) {
+        updateCurrentNode()
+    }
 
+    LaunchedEffect(ignoreFileType.value) {
+        if (type.value == EasyRenameMode.Type && ignoreFileType.value) {
+            type.value = EasyRenameMode.None
+        }
+        updateCurrentNode()
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        GenericRadio(EasyRenameMode.All, type, "全部替换")
+        GenericRadio(EasyRenameMode.Prefix, type, "前插入")
+        GenericRadio(EasyRenameMode.Suffix, type, "后插入")
+        GenericRadio(EasyRenameMode.Type, type, "类型替换")
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("无视类型")
+        Checkbox(checked = ignoreFileType.value, onCheckedChange = {
+            ignoreFileType.value = it
+        })
+    }
+    val hintText = when (type.value) {
+        EasyRenameMode.None -> ""
+        EasyRenameMode.Prefix -> "输入前插入内容"
+        EasyRenameMode.Suffix -> "输入后插入内容"
+        EasyRenameMode.Type -> "输入想要替换成的文件类型"
+        EasyRenameMode.All -> "输入全部替换内容"
+    }
+    if (type.value != EasyRenameMode.None) {
+        TextField(
+            value = replacement.value,
+            onValueChange = { replacement.value = it },
+            label = { Text(hintText) }
+        )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Text("无视类型即只操作最后一个“.”之前的内容，比如aabb.txt，只操作aabb")
+    Spacer(modifier = Modifier.height(8.dp))
+    Text("类型替换即只操作最后一个“.”之后的内容，比如aabb.txt，只操作txt")
+    Spacer(modifier = Modifier.height(8.dp))
+    Text("类型替换和无视类型冲突")
+}
+
+@Composable
+fun RegexRename(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val renameRegex = remember { mutableStateOf("") }
+    val renameReplace = remember { mutableStateOf("") }
+    val previewText = remember { mutableStateOf("这里是-测试输入-点击修改.txt") }
+    val error = remember { mutableStateOf(false) }
+
+    val renamePreview = remember { mutableStateOf("") }
+    val showHint = remember { mutableStateOf(false) }
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        if (renameRegex.value.isNotEmpty()) {
+            currentNode.value = ProcessRegexRenameNode(
+                regex = renameRegex.value,
+                replacement = renameReplace.value
+            )
+        }
+        end.value = currentNode.value != null
+    }
+
+    LaunchedEffect(renameReplace.value, renameRegex.value) {
+        try {
+            error.value = false
+            renamePreview.value = if (renameRegex.value.isNotEmpty())
+                previewText.value.replace(
+                    Regex(renameRegex.value),
+                    renameReplace.value
+                ) else previewText.value
+        } catch (e: Exception) {
+            error.value = true
+        }
+        updateCurrentNode()
+    }
+
+    Text("危险节点，请注意自己的公式，谨慎保存", color = Color.Red)
+    Spacer(modifier = Modifier.height(8.dp))
+    TextField(
+        value = previewText.value,
+        onValueChange = { previewText.value = it },
+        label = { Text("输入测试输入") }
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    TextField(
+        value = renameRegex.value,
+        onValueChange = { renameRegex.value = it },
+        label = { Text("输入正则公式") }
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    TextField(
+        value = renameReplace.value,
+        onValueChange = { renameReplace.value = it },
+        label = { Text("输入替换内容") }
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        fontSize = 12.sp,
+        color = Color.Gray,
+        text = "结果预览" + if (error.value) " 有报错" else ""
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(renamePreview.value)
+    Spacer(modifier = Modifier.height(8.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("查看提示")
+        Checkbox(modifier = Modifier.size(24.dp), checked = showHint.value, onCheckedChange = {
+            showHint.value = it
+        })
+    }
+    if (showHint.value) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            fontSize = 14.sp,
+            text = "你需要一些正则的知识来正确这个节点，去问AI也是个好办法" +
+                    "\n$0,$1...代表着捕获组，利用这个你可以相当方便的对原输入进行处理" +
+                    "\n所有输入默认过滤路径，以防止出现不可挽回的后果(你不会想知道的)" +
+                    "\n我会为你提供一些预设的正则匹配如下"
+
+        )
+        Row {
+            Button(onClick = {
+                previewText.value = "1023456789-1-30112.mp4"
+                renameRegex.value = "^\\d{5,}"
+                renameReplace.value = "bili_\$0"
+            }) {
+                Text("bili分割文件")
             }
-
-            3 -> {
-                Text("移动")
-
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                previewText.value = "作者名_标题_内容.mp4"
+                renameRegex.value = "^(.*?)_"
+                renameReplace.value = "douyin_\$0"
+            }) {
+                Text("通配首个_替换")
             }
         }
     }
-
 }
+
+@Composable
+fun MediaMerge(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val type = remember { mutableStateOf("none") }
+    Row {
+        GenericRadio("normal", type, "媒体合并")
+    }
+}
+
+@Composable
+fun Move(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    val type = remember { mutableStateOf("none") }
+    Row {
+        GenericRadio("normal", type, "移动")
+    }
+}
+
 
 @Composable
 fun <T> GenericRadio(
     option: T,
     selectedOption: MutableState<T>,
     label: String,
+    textColor: Color? = null,
+    radioColor: Color? = null,
     onOptionSelected: ((T) -> Unit)? = null
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label)
+        if (textColor != null) {
+            Text(label, color = textColor)
+        } else {
+            Text(label)
+        }
         RadioButton(
             modifier = Modifier.padding(0.dp),
             selected = (selectedOption.value == option),
             onClick = {
                 selectedOption.value = option
                 onOptionSelected?.invoke(option)
-            }
+            },
+            colors = RadioButtonDefaults.colors( // 设置RadioButton文本颜色
+                selectedColor = radioColor ?: MaterialTheme.colors.secondary,
+                unselectedColor = radioColor ?: MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+            )
         )
     }
 }
-
-//        SwingUtilities.invokeLater {
-//            val fileChooser = JFileChooser()
-//            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-//            fileChooser.setDialogTitle("选择目标文件夹");
-//            fileChooser.setAcceptAllFileFilterUsed(false);
-//            fileChooser.isVisible = true
-//            val result = fileChooser.showOpenDialog(null)
-//            if (result == JFileChooser.APPROVE_OPTION) {
-////                            destNode.destFolderList.add(fileChooser.selectedFile.toPath().toString())
-//            }
-//        }
-
-
-//                println("contain ${containDirectory.value}")
-//                val localNode = MatchNameNode(
-//                    mode = NameMatchMode.ALL_MODE,
-//                    containDirectory = containDirectory.value
-//                )
-//                currentNode.value = localNode

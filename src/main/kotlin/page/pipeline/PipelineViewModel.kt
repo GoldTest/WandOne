@@ -16,8 +16,9 @@ object PipeLineViewModel {
     val logQueue = arrayListOf<String>()
 
     //每个管道当前节点，以及当前的处理过程
-    val currentProcess = "12"
-    val currentNodeDescribe = mutableStateOf<String>("未启动")
+    val tempLog = mutableStateListOf<String>("")
+    val hitLog = mutableStateListOf<String>("")
+    val currentNodeDescribe = mutableStateOf("未启动")
 }
 
 object CreateNodes {
