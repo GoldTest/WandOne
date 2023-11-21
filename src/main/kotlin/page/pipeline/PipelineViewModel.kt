@@ -19,6 +19,7 @@ object PipeLineViewModel {
     val tempLog = mutableStateListOf<String>("")
     val hitLog = mutableStateListOf<String>("")
     val currentNodeDescribe = mutableStateOf("未启动")
+    val fabClicked = mutableStateOf(false)
 }
 
 object CreateNodes {

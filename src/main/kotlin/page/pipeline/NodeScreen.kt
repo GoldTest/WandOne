@@ -3,14 +3,17 @@ package page.pipeline
 import PAGE_END
 import PAGE_START
 import PAGE_TOP
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -22,9 +25,9 @@ import model.ToastViewModel.snack
 import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
 import java.awt.Dimension
-import java.lang.Exception
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
+import kotlin.Exception
 
 class InputNodeScreen : Screen {
     @Composable
@@ -404,6 +407,7 @@ fun MatchType(
     currentNode: MutableState<ProcessNode?>
 ) {
     val fileType = remember { mutableStateOf("none") }
+    val typeList = remember { mutableStateListOf<String>() }
     fun updateCurrentNode() {
         currentNode.value = null
 
@@ -414,16 +418,85 @@ fun MatchType(
                 )
             }
 
+            "selected" -> {
+                if (typeList.size > 0) {
+                    currentNode.value = MatchTypeNode(
+                        mode = FileType.Custom,
+                        typeList = typeList
+                    )
+                }
+            }
+
         }
         end.value = currentNode.value != null
     }
     LaunchedEffect(
         fileType.value,
+        typeList.size
     ) {
         updateCurrentNode()
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         GenericRadio("all", fileType, "全部类型")
+        GenericRadio("selected", fileType, "选择类型")
+    }
+    when (fileType.value) {
+        "selected" -> {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.width(48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(fontSize = 12.sp, color = Color.Gray, text = "文档")
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                TypeListCheckBox("TXT", typeList, "txt")
+                TypeListCheckBox("PDF", typeList, "pdf")
+                TypeListCheckBox("PPT/x", typeList, "ppt", "pptx")
+                TypeListCheckBox("DOC/x", typeList, "doc", "docx")
+                TypeListCheckBox("XLS/x", typeList, "xls", "xlsx")
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.width(48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(fontSize = 12.sp, color = Color.Gray, text = "视频")
+                }
+                TypeListCheckBox("MOV", typeList, "mov")
+                TypeListCheckBox("AVI", typeList, "avi")
+                TypeListCheckBox("MP4/s", typeList, "m4s", "mp4")
+
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.width(48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(fontSize = 12.sp, color = Color.Gray, text = "图片")
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                TypeListCheckBox("PNG", typeList, "png")
+                TypeListCheckBox("JPG/eg", typeList, "jpg", "jpeg")
+                TypeListCheckBox("WEBP", typeList, "webp")
+                TypeListCheckBox("GIF", typeList, "gif")
+                TypeListCheckBox("BMP", typeList, "bmp")
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.width(48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(fontSize = 12.sp, color = Color.Gray, text = "自定义")
+                }
+                val textField = remember { mutableStateOf("") }
+                TextField(
+                    modifier = Modifier.height(48.dp),
+                    value = textField.value,
+                    onValueChange = {
+                        textField.value = it
+                    }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Button(shape = CircleShape, onClick = {
+                    if (textField.value.isNotEmpty()) typeList.add(textField.value)
+                }) {
+                    Text(text = "+")
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            EasyList(typeList) { remove ->
+                typeList.removeIf { it == remove }
+            }
+        }
     }
 }
 
@@ -443,24 +516,105 @@ fun MultiMatchNodeScreen(
             GenericRadio("serial", type, "系列")
         }
         when (type.value) {
-            "pair" -> {
-                Column {
-                    Text("仅接受文件输入，前面的匹配节点请注意")
-                    Row {
-                        Text("源文件分割规则")
-                    }
-                    Row {
-                        Text("目标文件分割规则")
-                    }
+            "pair" -> MatchPair(end, currentNode)
 
-                }
-            }
+            "serial" -> MatchSerial(end, currentNode)
 
-            "serial" -> {
-                Column {
-                    Text("仅接受文件输入")
-                }
+        }
+    }
+}
+
+@Composable
+fun MatchPair(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+
+    val inputPreview = remember { mutableStateOf("12312123-1-12312.mp4") }
+    val inputRegex = remember { mutableStateOf("") }
+    val inputResult = remember { mutableStateOf("") }
+
+    val pairPreview = remember { mutableStateOf("") }
+    val pairRegex = remember { mutableStateOf("") }
+    val pairResult = remember { mutableStateOf("") }
+
+    val error = remember { mutableStateOf(false) }
+
+    fun updateCurrentNode() {
+        currentNode.value = null
+        if (inputRegex.value.isNotEmpty()) {
+        }
+        end.value = currentNode.value != null
+    }
+
+    LaunchedEffect(
+        inputPreview.value,
+        inputRegex.value
+    ) {
+        try {
+            error.value = false
+            inputResult.value = if (inputRegex.value.isNotEmpty()) {
+                val regex = Regex(inputRegex.value)
+                regex.find(inputPreview.value)?.value ?: ""
+            } else ""
+        } catch (e: Exception) {
+            error.value = true
+        }
+        updateCurrentNode()
+    }
+
+
+    Column {
+        TextField(
+            value = inputPreview.value,
+            onValueChange = {
+                inputPreview.value = it
+            },
+            label = {
+                Text("输入测试")
             }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = inputRegex.value,
+            onValueChange = {
+                inputRegex.value = it
+            },
+            label = {
+                Text("输入匹配正则")
+            }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("匹配结果预览：${if (error.value) "报错了" else ""}${inputResult.value}")
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("相等")
+            Checkbox(checked = false, onCheckedChange = {})
+            Text("包含")
+            Checkbox(checked = false, onCheckedChange = {})
+            Text("部分")
+            Checkbox(checked = false, onCheckedChange = {})
+        }
+        Row {
+            Text("目标文件分割规则")
+        }
+
+    }
+}
+
+@Composable
+fun MatchSerial(
+    end: MutableState<Boolean>,
+    currentNode: MutableState<ProcessNode?>
+) {
+    Column {
+        Row {
+            Text("文件特征匹配")
+        }
+        Row {
+            Text("前导")
+            Text("包含")
+
         }
     }
 }
@@ -473,6 +627,9 @@ fun OperateNodeScreen(
     val operateChooseState = remember { mutableStateOf("none") }
     fun updateOperateNode() {
         currentNode.value = null
+        if (operateChooseState.value == "delete") {
+            currentNode.value = ProcessDeleteNode()
+        }
         end.value = currentNode.value != null
     }
     LaunchedEffect(
@@ -485,11 +642,16 @@ fun OperateNodeScreen(
             GenericRadio("rename", operateChooseState, "重命名")
             GenericRadio("mediaMerge", operateChooseState, "媒体合并")
             GenericRadio("move", operateChooseState, "移动")
+            GenericRadio("delete", operateChooseState, "删除", radioColor = Color.Red, textColor = Color.Red)
         }
         when (operateChooseState.value) {
             "rename" -> Rename(end, currentNode)
             "mediaMerge" -> MediaMerge(end, currentNode)
             "move" -> Move(end, currentNode)
+            "delete" -> Text(
+                color = Color.Red,
+                text = "是的，这个节点可以直接保存，删除匹配到的内容\n高危节点，极度注意前序操作\n相信我，你不会想把自己的电脑弄得一团糟的"
+            )
         }
     }
 }
@@ -526,6 +688,7 @@ fun EasyRename(
     val type = remember { mutableStateOf(EasyRenameMode.None) }
     val ignoreFileType = remember { mutableStateOf(true) }
     val replacement = remember { mutableStateOf("") }
+    val sliderValue = remember { mutableStateOf("100") }
 
 
     fun updateCurrentNode() {
@@ -540,7 +703,8 @@ fun EasyRename(
                     currentNode.value = ProcessEasyRenameNode(
                         easyRenameMode = type.value,
                         replaceString = replacement.value,
-                        ignoreFileType = ignoreFileType.value
+                        ignoreFileType = ignoreFileType.value,
+                        maxRetryCount = sliderValue.value.toInt()
                     )
                 }
             }
@@ -548,7 +712,7 @@ fun EasyRename(
         end.value = currentNode.value != null
     }
 
-    LaunchedEffect(type.value, replacement.value) {
+    LaunchedEffect(type.value, sliderValue.value, replacement.value) {
         updateCurrentNode()
     }
 
@@ -586,6 +750,22 @@ fun EasyRename(
             onValueChange = { replacement.value = it },
             label = { Text(hintText) }
         )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        TextField(
+            value = sliderValue.value,
+            onValueChange = { newText ->
+                if (newText.all { it.isDigit() }) { // 确保只有数字
+                    sliderValue.value = newText
+                }
+            },
+            label = { Text("输入冲突最大重试次数") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text("最多重试${sliderValue.value}次")
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -717,63 +897,145 @@ fun Move(
 ) {
     val type = remember { mutableStateOf("none") }
     val folder = remember { mutableStateOf("") }
+    val sliderValue = remember { mutableStateOf("100") }
+    val subFolder = remember { mutableStateOf(false) }
+    val subFolderRegex = remember { mutableStateOf("") }
+    val subFolderReplaceRegex = remember { mutableStateOf("$0") }
 
 
     fun updateCurrentNode() {
         currentNode.value = null
         if (folder.value.isNotEmpty()) {
             currentNode.value = ProcessMoveNode(
-                destFolder = folder.value
+                destFolder = folder.value,
+                maxRetryCount = sliderValue.value.toInt(),
+                subFolder = subFolder.value,
+                subFolderRegex = subFolderRegex.value,
+                subFolderReplaceRegex = subFolderReplaceRegex.value
             )
         }
         end.value = currentNode.value != null
     }
-    LaunchedEffect(type.value, folder.value) {
+    LaunchedEffect(
+        subFolder.value,
+        type.value,
+        folder.value,
+        subFolderRegex.value,
+        subFolderReplaceRegex.value
+    ) {
         updateCurrentNode()
     }
-
     Row(verticalAlignment = Alignment.CenterVertically) {
-        GenericRadio("chooseFolder", type, "选择文件夹")
-        GenericRadio("inputFolder", type, "输入文件夹")
+        Button(
+            enabled = folder.value.isEmpty(),
+            onClick = {
+                val fileChooser = JFileChooser()
+                fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                fileChooser.setDialogTitle("选择移动文件夹")
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                fileChooser.setAcceptAllFileFilterUsed(false)
+                fileChooser.preferredSize = Dimension(800, 500)
+                fileChooser.isVisible = true
+                val result = fileChooser.showOpenDialog(null)
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    val path = fileChooser.selectedFile.toPath().toString()
+                    folder.value = path
+                }
+            }) {
+            Text("选择文件夹")
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(fontSize = 12.sp, color = Color.Gray, text = "或者")
+        Spacer(modifier = Modifier.width(8.dp))
+        TextField(
+            value = folder.value,
+            onValueChange = { folder.value = it },
+            label = { Text("输入文件夹") }
+        )
     }
-    when (type.value) {
-        "chooseFolder" -> {
-            Button(
-                enabled = folder.value.isEmpty(),
-                onClick = {
-                    val fileChooser = JFileChooser()
-                    fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                    fileChooser.setDialogTitle("选择移动文件夹")
-                    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
-                    fileChooser.setAcceptAllFileFilterUsed(false)
-                    fileChooser.preferredSize = Dimension(800, 500)
-                    fileChooser.isVisible = true
-                    val result = fileChooser.showOpenDialog(null)
-                    if (result == JFileChooser.APPROVE_OPTION) {
-                        val path = fileChooser.selectedFile.toPath().toString()
-                        folder.value = path
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("子文件夹模式")
+        Checkbox(checked = subFolder.value, onCheckedChange = {
+            subFolder.value = it
+        })
+    }
+    if (subFolder.value) {
+        val previewInput = remember { mutableStateOf("这里是-预览输入-文件.txt") }
+        val previewResult = remember { mutableStateOf("") }
+        val error = remember { mutableStateOf(false) }
+        LaunchedEffect(
+            previewInput.value,
+            previewResult.value,
+            subFolderRegex.value,
+            subFolderReplaceRegex.value
+        ) {
+            error.value = false
+            try {
+                previewResult.value = if (subFolderRegex.value.isNotEmpty()) {
+                    val regex = Regex(subFolderRegex.value)
+                    val matchResult = regex.find(previewInput.value)
+                    val result = if (matchResult != null) {
+                        subFolderReplaceRegex.value.replace(Regex("\\$(\\d)")) { match ->
+                            val groupIndex = match.groupValues[1].toInt()
+                            matchResult.groupValues.getOrElse(groupIndex) { "" }
+                        }
+                    } else {
+                        ""
                     }
-                }) {
-                Text("选择文件夹")
+                    result
+                } else ""
+            } catch (e: Exception) {
+                error.value = true
             }
         }
 
-        "inputFolder" -> {
-            TextField(
-                value = folder.value,
-                onValueChange = { folder.value = it },
-                label = { Text("输入文件夹") }
-            )
+        TextField(value = previewInput.value, onValueChange = {
+            previewInput.value = it
+        }, label = { Text("输入预览输入") })
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextField(value = subFolderRegex.value, onValueChange = {
+                subFolderRegex.value = it
+            }, label = { Text("输入子文件夹正则") })
+
+            TextField(value = subFolderReplaceRegex.value, onValueChange = {
+                subFolderReplaceRegex.value = it
+            }, label = { Text("输入捕获组替换正则") })
         }
 
+        Text(
+            "预览匹配结果：${if (error.value) "出错了 " else ""}" +
+                    if (previewResult.value.isBlank()) "未匹配到结果，不移动" else previewResult.value
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("如果你不了解正则和捕获组的概念，可以尝试询问AI来满足你的需求\n在这里 子文件夹会由匹配结果按规则创建")
     }
+
+    Spacer(modifier = Modifier.height(36.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextField(
+            value = sliderValue.value,
+            onValueChange = { newText ->
+                if (newText.all { it.isDigit() }) { // 确保只有数字
+                    sliderValue.value = newText
+                }
+            },
+            label = { Text("输入冲突最大重试次数") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text("最多重试${sliderValue.value}次")
+    }
+
+
     Spacer(modifier = Modifier.height(8.dp))
     if (folder.value.isNotEmpty()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(folder.value, modifier = Modifier.weight(1f))
             Button(
                 shape = CircleShape,
-                modifier = Modifier.padding(0.dp).size(24.dp),
+                modifier = Modifier.size(24.dp),
                 contentPadding = PaddingValues(0.dp),
                 onClick = { folder.value = "" }
             ) {
@@ -810,6 +1072,30 @@ fun <T> GenericRadio(
                 selectedColor = radioColor ?: MaterialTheme.colors.secondary,
                 unselectedColor = radioColor ?: MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
             )
+        )
+    }
+}
+
+@Preview
+@Composable
+fun TypeListCheckBox(
+    label: String,
+    typeList: MutableList<String>,
+    vararg fileType: String
+) {
+    val isChecked = remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label)
+        Checkbox(
+            checked = isChecked.value,
+            onCheckedChange = { checked ->
+                isChecked.value = checked
+                if (checked) {
+                    fileType.forEach { typeList.add(it) }
+                } else {
+                    fileType.forEach { type -> typeList.removeIf { it == type } }
+                }
+            }
         )
     }
 }

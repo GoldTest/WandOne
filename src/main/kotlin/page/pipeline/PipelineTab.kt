@@ -2,18 +2,25 @@ package page.pipeline
 
 import DEFAULT_DOUYIN_DEST_FOLDER
 import DEFAULT_DOUYIN_SOURCE_FOLDER
+import FabAction
 import PAGE_END
 import PAGE_START
+import PAGE_TOP
 import TAB_PIPELINE
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -32,14 +39,16 @@ import func.commonChangeFolder
 import model.Describe
 import model.FileMigrateViewModel
 import model.Pipeline
+import org.burnoutcrew.reorderable.*
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
+import page.pipeline.PipeLineViewModel.fabClicked
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.PipeLineViewModel.pipelines
 import page.pipeline.PipeLineViewModel.tempLog
 
 
-object PipelineTab : Tab {
+object PipelineTab : Tab, FabAction {
     private fun readResolve(): Any = PipelineTab
 
     override val options: TabOptions
@@ -60,13 +69,17 @@ object PipelineTab : Tab {
     override fun Content() {
         PipelinePage()
     }
+
+    override fun onFabClicked() {
+        fabClicked.value = !fabClicked.value
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 @Preview
-fun Tab.PipelinePage() {
-
+fun Tab.PipelinePage(
+) {
     LifecycleEffect(
         onStarted = { },
         onDisposed = { }
@@ -81,56 +94,22 @@ data class PipelinePage(
 ) : Screen {
     override val key = uniqueScreenKey
 
-
     @Composable
     override fun Content() {
         val migrationStatus = remember { mutableStateListOf<String>() }
         val pipelinesLocal by pipelines.collectAsState()
+        val navigator = LocalNavigator.currentOrThrow
         Column(
-            modifier = Modifier.padding(start = PAGE_START, end = PAGE_END),
+            modifier = Modifier.padding(start = PAGE_START, end = PAGE_END).fillMaxHeight()
         ) {
-            var manualClick by remember { mutableStateOf(0) }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = {
-                        migrationStatus.clear()
-                        commonChangeFolder(DEFAULT_DOUYIN_SOURCE_FOLDER, DEFAULT_DOUYIN_DEST_FOLDER, migrationStatus)
-                        FileMigrateViewModel.migrateState.value = "手动迁移点击：$manualClick"
-                        manualClick++
-                    },
-                ) {
-                    Text(FileMigrateViewModel.migrateState.value)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                if (migrationStatus.isNotEmpty()) {
-                    Text(migrationStatus.last())
+            val isFirstComposition = remember { mutableStateOf(true) }
+            LaunchedEffect(fabClicked.value) {
+                if (!isFirstComposition.value) {
+                    navigator.push(PipelineScreen())
                 } else {
-                    Text("未手动迁移过")
+                    isFirstComposition.value = false
                 }
             }
-
-            Button(onClick = {
-                FileMigrateViewModel.serviceState.value =
-                    if (FileMigrateViewModel.serviceState.value == "运行中，点击停止") {
-                        FileMigrateViewModel.fileMigrationService.stop()
-                        "启动服务"
-                    } else {
-                        FileMigrateViewModel.fileMigrationService.start()
-                        "运行中，点击停止"
-                    }
-            }) {
-                Text(FileMigrateViewModel.serviceState.value)
-            }
-            val navigator = LocalNavigator.currentOrThrow
-            Button(onClick = {
-                navigator.push(PipelineScreen())
-            }) {
-                Text("添加规则")
-            }
-
             if (pipelinesLocal.isNotEmpty()) {
                 PipelineList(pipelinesLocal, onUpdate = {
                     pipelineService.updatePipeline(it)
@@ -146,14 +125,23 @@ data class PipelinePage(
 @Composable
 fun PipelineList(pipelines: MutableList<Pipeline>, onUpdate: ((Pipeline) -> Unit)? = null, onRemove: (Int) -> Unit) {
     if (pipelines.isEmpty()) return
+
     LazyColumn {
+        this.item {
+            Card(elevation = 8.dp) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.height(1.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
         this.items(pipelines) {
             Pipeline(it, onUpdate = {
                 onUpdate?.invoke(it)
             }) {
                 onRemove.invoke(it.id)
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -161,7 +149,7 @@ fun PipelineList(pipelines: MutableList<Pipeline>, onUpdate: ((Pipeline) -> Unit
 @Composable
 fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemove: () -> Unit) {
     val navigator = LocalNavigator.currentOrThrow
-    Card(elevation = 4.dp) {
+    Card(elevation = 8.dp) {//border = BorderStroke(width = 1.dp, Color.LightGray)
         Box {
             Row(modifier = Modifier.padding(12.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -238,7 +226,6 @@ fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemov
                 fontSize = 12.sp,
                 color = Color.Gray
             )
-
         }
     }
 }
@@ -259,3 +246,44 @@ fun NodeDescribe(node: Describe) {
         Text(text = node.describe(), style = TextStyle(fontSize = 15.sp))
     }
 }
+
+//todo clear
+//            var manualClick by remember { mutableStateOf(0) }
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Button(
+//                    onClick = {
+//                        migrationStatus.clear()
+//                        commonChangeFolder(DEFAULT_DOUYIN_SOURCE_FOLDER, DEFAULT_DOUYIN_DEST_FOLDER, migrationStatus)
+//                        FileMigrateViewModel.migrateState.value = "手动迁移点击：$manualClick"
+//                        manualClick++
+//                    },
+//                ) {
+//                    Text(FileMigrateViewModel.migrateState.value)
+//                }
+//                Spacer(modifier = Modifier.width(8.dp))
+//                if (migrationStatus.isNotEmpty()) {
+//                    Text(migrationStatus.last())
+//                } else {
+//                    Text("未手动迁移过")
+//                }
+//            }
+//
+//            Button(onClick = {
+//                FileMigrateViewModel.serviceState.value =
+//                    if (FileMigrateViewModel.serviceState.value == "运行中，点击停止") {
+//                        FileMigrateViewModel.fileMigrationService.stop()
+//                        "启动服务"
+//                    } else {
+//                        FileMigrateViewModel.fileMigrationService.start()
+//                        "运行中，点击停止"
+//                    }
+//            }) {
+//                Text(FileMigrateViewModel.serviceState.value)
+//            }
+//            Button(onClick = {
+//                navigator.push(PipelineScreen())
+//            }) {
+//                Text("添加规则")
+//            }

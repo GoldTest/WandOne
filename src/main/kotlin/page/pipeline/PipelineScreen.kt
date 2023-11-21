@@ -2,16 +2,21 @@ package page.pipeline
 
 import PAGE_END
 import PAGE_START
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -23,13 +28,14 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
-import model.SharedInstance
-import model.ToastViewModel
+import model.*
 import page.pipeline.CreateNodes.currentPipeline
 import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
-import model.Node
-import model.Pipeline
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.detectReorder
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
 import page.pipeline.PipeLineViewModel.pipelineService
 
 data class PipelineScreen(
@@ -131,7 +137,7 @@ data class PipelineScreen(
                     style = TextStyle(fontSize = 14.sp, color = Color.Gray)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                ProcessNodeList(inputNodes, onRemove = {
+                InputNodeList(inputNodes, onRemove = {
                     inputNodes.remove(it)
                 })
                 if (inputNodes.size > 3) {
@@ -148,7 +154,7 @@ data class PipelineScreen(
             if (processNodes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(if (inputNodes.isNotEmpty()) 24.dp else 12.dp))
                 Text(
-                    text = "操作节点",
+                    text = "操作节点 拖拽排序",
                     style = TextStyle(fontSize = 14.sp, color = Color.Gray)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -169,6 +175,7 @@ fun EasyList(itemList: MutableList<out Any>, onRemove: (Any) -> Unit) {
             EasyRow(item, onRemove = {
                 onRemove(item)
             })
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -195,23 +202,60 @@ fun EasyRow(item: Any, onRemove: () -> Unit) {
     }
 }
 
+
 @Composable
-fun ProcessNodeList(itemList: MutableList<out Node>, onRemove: (Any) -> Unit) {
+fun ProcessNodeList(itemList: MutableList<ProcessNode>, onRemove: (Any) -> Unit) {
     if (itemList.isEmpty()) return
-    LazyColumn {
+    val state = rememberReorderableLazyListState(onMove = { from, to ->
+        itemList.apply {
+            val removed = removeAt(from.index)
+            add(to.index, removed)
+        }
+    })
+    LazyColumn(
+        state = state.listState,
+        modifier = Modifier.reorderable(state)
+    ) {
+        items(itemList, { it }) { item ->
+            ReorderableItem(state, key = item) { isDragging ->
+                val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
+                Column {
+                    Column(
+                        modifier = Modifier
+                            .shadow(elevation.value)
+                            .detectReorder(state)
+                            .background(MaterialTheme.colors.surface)
+                    ) {
+                        ProcessNode(item, onRemove = {
+                            onRemove(item)
+                        })
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InputNodeList(itemList: MutableList<out Node>, onRemove: (Any) -> Unit) {
+    if (itemList.isEmpty()) return
+    val lazyListState = rememberLazyListState()
+    LazyColumn(state = lazyListState) {
         this.items(itemList) { item ->
             ProcessNode(item, onRemove = {
                 onRemove(item)
             })
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
 fun ProcessNode(item: Node, onRemove: () -> Unit) {
-    Box {
+    Card(elevation = 6.dp) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {

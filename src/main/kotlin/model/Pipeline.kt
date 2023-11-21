@@ -363,20 +363,29 @@ class MatchNameNode(
 }
 
 enum class FileType {
-    None, All, Audio, Video, Pic, Document, Zip, Custom
+    None, All, Custom
 }
 
 @Serializable
 class MatchTypeNode(
-    val mode: FileType = FileType.None
+    val mode: FileType = FileType.None,
+    val typeList: MutableList<String>? = null
 ) : MatchNode() {
 
-
-    fun types() {
-
-    }
-
     override fun rule(input: Any): Boolean {
+        when (mode) {
+            FileType.None -> false
+            FileType.All -> true
+            FileType.Custom -> {
+                when (input) {
+                    is File -> {
+                        val extension = input.extension
+                        if (extension.isEmpty()) return false
+                        return typeList?.contains(extension) == true
+                    }
+                }
+            }
+        }
         return true
     }
 
@@ -385,7 +394,7 @@ class MatchTypeNode(
     }
 
     override fun describe(): String {
-        val type = if (mode == FileType.All) "全部类型" else ""
+        val type = if (mode == FileType.All) "全部类型" else typeList?.joinToString(" ")
         return "匹配：$type"
     }
 
@@ -547,7 +556,8 @@ class ProcessEasyRenameNode(
                         var count = 0
                         while (count <= maxRetryCount) {
                             val suffix = if (count > 0) "-$count" else ""
-                            var newName = if (ignoreFileType) "$name$replaceString$suffix$type" else "$name$type$replaceString$suffix"
+                            var newName =
+                                if (ignoreFileType) "$name$replaceString$suffix$type" else "$name$type$replaceString$suffix"
                             result = File(parent, newName)
                             if (!result.exists()) {
                                 return if (input.renameTo(result)) result else false
@@ -645,10 +655,14 @@ class ProcessMultiFileNode() : ProcessNode() {
 
 @Serializable
 class ProcessMoveNode(
-    val destFolder: String
+    val destFolder: String,
+    val maxRetryCount: Int = 100,
+    val subFolder: Boolean = false,
+    val subFolderRegex: String = "",
+    val subFolderReplaceRegex: String = ""
 ) : ProcessNode() {
 
-    val maxRetryCount = 10
+
     override fun describe(): String {
         return "移动到：$destFolder"
     }
@@ -666,7 +680,34 @@ class ProcessMoveNode(
 
         when (input) {
             is File -> {
-                if (input.exists() && ensurePathExists(destFolder)) {
+                if (subFolder) {
+                    try {
+                        if (!input.exists() || !ensurePathExists(destFolder)) return false
+
+                        val matchResult = subFolderRegex.toRegex().find(input.name)
+                        val subFolder = matchResult?.let {
+                            subFolderReplaceRegex.replace(Regex("\\$(\\d)")) { match ->
+                                val groupIndex = match.groupValues[1].toInt()
+                                it.groupValues.getOrElse(groupIndex) { "" }
+                            }
+                        } ?: return false
+                        if (!ensurePathExists("$destFolder\\$subFolder")) return false
+
+                        val destBase = "$destFolder\\$subFolder"
+                        var destFile = File(destBase, input.name)
+                        var count = 0
+                        while (destFile.exists() && count <= maxRetryCount) {
+                            count++
+                            val newName = "${input.nameWithoutExtension}-$count." +
+                                    (input.extension.takeIf { it.isNotEmpty() } ?: "")
+                            destFile = File(destBase, newName)
+                        }
+
+                        return input.renameTo(destFile)
+                    } catch (e: Exception) {
+                        return false
+                    }
+                } else if (input.exists() && ensurePathExists(destFolder)) {
                     var destFile = File(destFolder, input.name)
                     var count = 0
                     while (destFile.exists() && count <= maxRetryCount) {
@@ -682,6 +723,27 @@ class ProcessMoveNode(
             }
         }
 
+        return false
+    }
+}
+
+@Serializable
+class ProcessDeleteNode(
+) : ProcessNode() {
+
+    override fun describe(): String {
+        return "删除节点"
+    }
+
+    override fun process(input: Any): Any {
+        when (input) {
+            is File -> {
+                if (input.exists() && input.isDirectory) {
+                    input.delete()
+                    return false //截断
+                }
+            }
+        }
         return false
     }
 }

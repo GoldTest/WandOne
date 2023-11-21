@@ -32,6 +32,7 @@ dependencies {
     val h2Version = "+"
     val logbackVersion = "+" //1.2.11
     val serializeVersion = "+" //1.1.1
+    val reorderVersion = "+" //0.9.6
 
     //desktop
     implementation(compose.desktop.currentOs)
@@ -61,6 +62,9 @@ dependencies {
 
     //serialize
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializeVersion")
+
+    //reorder 排序
+    implementation("org.burnoutcrew.composereorderable:reorderable:$reorderVersion")
 
 
 }

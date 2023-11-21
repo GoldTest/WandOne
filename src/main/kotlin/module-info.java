@@ -24,4 +24,5 @@ module WandOne.main {
     requires kotlinx.serialization.core;
     requires kotlinx.serialization.json;
     requires material.icons.core.desktop;
+    requires reorderable.jvm;
 }
