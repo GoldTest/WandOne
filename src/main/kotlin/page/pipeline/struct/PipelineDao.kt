@@ -1,6 +1,7 @@
-package model
+package page.pipeline.struct
 
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import model.SharedInstance.json
 import org.jetbrains.exposed.sql.*
@@ -17,7 +18,6 @@ object Database {
         )
     }
 }
-
 
 class PipelineService(private val database: Database) {
     private val _pipelineFlow = MutableStateFlow<MutableList<Pipeline>>(mutableListOf())
@@ -44,10 +44,10 @@ class PipelineService(private val database: Database) {
     fun createPipeline(pipeline: Pipeline) {
         transaction {
             _PipeLine.insert {
-                it[this.name] = pipeline.name
-                it[this.runningState] = pipeline.runningState
-                it[this.input] = json.encodeToString(pipeline.inputs)
-                it[this.nodes] = json.encodeToString(pipeline.nodes)
+                it[name] = pipeline.name
+                it[runningState] = pipeline.runningState
+                it[input] = json.encodeToString(pipeline.inputs)
+                it[nodes] = json.encodeToString(pipeline.nodes)
             }
         }
         updatePipelines()
@@ -64,10 +64,10 @@ class PipelineService(private val database: Database) {
             _PipeLine.update(where = {
                 _PipeLine.id eq pipeline.id
             }) {
-                it[this.name] = pipeline.name
-                it[this.runningState] = pipeline.runningState
-                it[this.input] = json.encodeToString(pipeline.inputs)
-                it[this.nodes] = json.encodeToString(pipeline.nodes)
+                it[name] = pipeline.name
+                it[runningState] = pipeline.runningState
+                it[input] = json.encodeToString(pipeline.inputs)
+                it[nodes] = json.encodeToString(pipeline.nodes)
             }
         }
         updatePipelines()
@@ -75,7 +75,7 @@ class PipelineService(private val database: Database) {
 
     fun deletePipeline(id: Int) {
         transaction {
-            _PipeLine.deleteWhere { this.id.eq(id) }
+            _PipeLine.deleteWhere { _PipeLine.id.eq(id) }
         }
         updatePipelines()
     }

@@ -3,14 +3,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.window.*
-import model.Database.database
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import model.SharedInstance
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
 fun main() = run {
@@ -26,6 +18,7 @@ fun main() = run {
         val windowState = rememberWindowState()
         windowState.size = DpSize(APP_WINDOW_WIDTH, APP_WINDOW_HEIGHT)
         windowState.position = WindowPosition(Alignment.Center)
+        //todo
 //        Tray(this)
 
         val icon = painterResource(APP_ICON)

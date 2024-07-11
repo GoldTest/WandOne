@@ -1,26 +1,19 @@
 package page.pipeline
 
-import DEFAULT_DOUYIN_DEST_FOLDER
-import DEFAULT_DOUYIN_SOURCE_FOLDER
 import FabAction
 import PAGE_END
 import PAGE_START
-import PAGE_TOP
 import TAB_PIPELINE
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -35,17 +28,15 @@ import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import func.commonChangeFolder
-import model.Describe
-import model.FileMigrateViewModel
-import model.Pipeline
-import org.burnoutcrew.reorderable.*
+import page.pipeline.struct.Describe
+import page.pipeline.struct.Pipeline
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
 import page.pipeline.PipeLineViewModel.fabClicked
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.PipeLineViewModel.pipelines
 import page.pipeline.PipeLineViewModel.tempLog
+import view.customScrollable
 
 
 object PipelineTab : Tab, FabAction {
@@ -126,13 +117,13 @@ data class PipelinePage(
 fun PipelineList(pipelines: MutableList<Pipeline>, onUpdate: ((Pipeline) -> Unit)? = null, onRemove: (Int) -> Unit) {
     if (pipelines.isEmpty()) return
 
-    LazyColumn {
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    LazyColumn(
+        state = scrollState,
+        modifier = Modifier.customScrollable(scrollState, coroutineScope)
+    ) {
         this.item {
-            Card(elevation = 8.dp) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Spacer(modifier = Modifier.height(1.dp))
-                }
-            }
             Spacer(modifier = Modifier.height(12.dp))
         }
         this.items(pipelines) {
@@ -177,15 +168,25 @@ fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemov
                 }
                 Column(verticalArrangement = Arrangement.Bottom) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(shape = CircleShape, onClick = {
-                            navigator.push(PipelineScreen(pipeline))
-                        }) {
+                        Button(
+                            shape = CircleShape, onClick = {
+                                navigator.push(PipelineScreen(pipeline))
+                            }, colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
                             Text("编辑")
                         }
                         Spacer(modifier = Modifier.width(4.dp))
-                        Button(shape = CircleShape, onClick = {
-                            onRemove.invoke()
-                        }) {
+                        Button(
+                            shape = CircleShape, onClick = {
+                                onRemove.invoke()
+                            }, colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
                             Text("删除")
                         }
                         Spacer(modifier = Modifier.width(4.dp))
@@ -201,19 +202,29 @@ fun Pipeline(pipeline: Pipeline, onUpdate: ((Pipeline) -> Unit)? = null, onRemov
                         }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = {
-                            hitLog.clear()
-                            tempLog.clear()
-                            pipeline.execute()
-                        }) {
+                        Button(
+                            onClick = {
+                                hitLog.clear()
+                                tempLog.clear()
+                                pipeline.execute()
+                            }, colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
                             Text("手动执行")
                         }
 
                         Spacer(modifier = Modifier.width(4.dp))
 
-                        Button(onClick = {
-                            navigator.push(RecordScreen())
-                        }) {
+                        Button(
+                            onClick = {
+                                navigator.push(RecordScreen())
+                            }, colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
                             Text("执行记录")
                         }
                     }
@@ -246,44 +257,3 @@ fun NodeDescribe(node: Describe) {
         Text(text = node.describe(), style = TextStyle(fontSize = 15.sp))
     }
 }
-
-//todo clear
-//            var manualClick by remember { mutableStateOf(0) }
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Button(
-//                    onClick = {
-//                        migrationStatus.clear()
-//                        commonChangeFolder(DEFAULT_DOUYIN_SOURCE_FOLDER, DEFAULT_DOUYIN_DEST_FOLDER, migrationStatus)
-//                        FileMigrateViewModel.migrateState.value = "手动迁移点击：$manualClick"
-//                        manualClick++
-//                    },
-//                ) {
-//                    Text(FileMigrateViewModel.migrateState.value)
-//                }
-//                Spacer(modifier = Modifier.width(8.dp))
-//                if (migrationStatus.isNotEmpty()) {
-//                    Text(migrationStatus.last())
-//                } else {
-//                    Text("未手动迁移过")
-//                }
-//            }
-//
-//            Button(onClick = {
-//                FileMigrateViewModel.serviceState.value =
-//                    if (FileMigrateViewModel.serviceState.value == "运行中，点击停止") {
-//                        FileMigrateViewModel.fileMigrationService.stop()
-//                        "启动服务"
-//                    } else {
-//                        FileMigrateViewModel.fileMigrationService.start()
-//                        "运行中，点击停止"
-//                    }
-//            }) {
-//                Text(FileMigrateViewModel.serviceState.value)
-//            }
-//            Button(onClick = {
-//                navigator.push(PipelineScreen())
-//            }) {
-//                Text("添加规则")
-//            }

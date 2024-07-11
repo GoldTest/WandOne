@@ -19,11 +19,11 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import kotlinx.coroutines.launch
-import model.*
 import model.SharedInstance.scope
 import model.ToastViewModel.snack
 import page.pipeline.CreateNodes.inputNodes
 import page.pipeline.CreateNodes.processNodes
+import page.pipeline.struct.*
 import java.awt.Dimension
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities

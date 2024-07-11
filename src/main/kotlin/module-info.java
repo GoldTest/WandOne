@@ -21,8 +21,12 @@ module WandOne.main {
     requires voyager.navigator.desktop;
     requires kotlinx.coroutines.core;
     requires exposed.core;
-    requires kotlinx.serialization.core;
-    requires kotlinx.serialization.json;
+//    requires kotlinx.serialization.core;
+//    requires kotlinx.serialization;
+//    requires kotlinx.serialization.json;
     requires material.icons.core.desktop;
     requires reorderable.jvm;
+    requires kotlinx.serialization.json.jvm;
+    requires kotlinx.serialization.core.jvm;
+//    requires gradle.kotlin.dsl;
 }

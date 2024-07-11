@@ -1,10 +1,11 @@
 package page.pipeline
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import model.*
-import model.Database.database
+import page.pipeline.struct.Database.database
+import page.pipeline.struct.InputNode
+import page.pipeline.struct.PipelineService
+import page.pipeline.struct.ProcessNode
 
 object PipeLineViewModel {
     val pipelineService = PipelineService(database)
@@ -25,8 +26,5 @@ object PipeLineViewModel {
 object CreateNodes {
     val inputNodes = mutableStateListOf<InputNode>()
     val processNodes = mutableStateListOf<ProcessNode>()
-    val currentPipeline = mutableStateOf(Pipeline(inputs = inputNodes, nodes = processNodes))
+    val currentPipeline = mutableStateOf(page.pipeline.struct.Pipeline(inputs = inputNodes, nodes = processNodes))
 }
-
-val defaultBiliNodes = mutableListOf<ProcessNode>()
-

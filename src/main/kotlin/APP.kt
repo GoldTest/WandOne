@@ -25,18 +25,17 @@ import page.tools.ToolsTab
 fun App(viewModel: APPViewModel) {
     val scaffoldState = rememberScaffoldState()
 
-    TabNavigator(PipelineTab) { navigator ->
+    TabNavigator(ToolsTab) { navigator ->
         Scaffold(
             scaffoldState = scaffoldState,
             content = {
                 CurrentTab()
             },
             topBar = {
-                BottomNavigation(
-                ) {
+                BottomNavigation() {
+                    TabNavigationItem(ToolsTab)
                     TabNavigationItem(PipelineTab)
                     TabNavigationItem(MediaProcessTab)
-                    TabNavigationItem(ToolsTab)
                     TabNavigationItem(SettingTab)
                 }
             },

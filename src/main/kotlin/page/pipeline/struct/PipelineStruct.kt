@@ -1,11 +1,10 @@
-package model
+package page.pipeline.struct
 
 import kotlinx.serialization.Serializable
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.tempLog
 import java.io.File
-import java.nio.file.Files
 
 
 /***

@@ -1,9 +1,14 @@
 package func
 
 import APP_PATH
+import androidx.compose.runtime.*
+import kotlinx.coroutines.*
+import model.SharedInstance.classLoader
 import java.io.*
 import java.nio.file.Files
 import java.util.prefs.Preferences
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
 
 
 fun getCurrentApplicationPath(): String {
@@ -177,6 +182,34 @@ fun setStartupEnabled(enabled: Boolean, exePath: String) {
     }
 }
 
-fun hasAdminPermission():Boolean{
+fun hasAdminPermission(): Boolean {
     return false
+}
+
+@Composable
+fun countdown(initialValue: Int, delayGap: Long = 1000, onTick: (Int) -> Unit) {
+    val value = remember { mutableStateOf(initialValue) }
+    val coroutineScope = rememberCoroutineScope()
+    coroutineScope.launch {
+        while (value.value > 0) {
+            onTick(value.value)
+            delay(delayGap)
+            value.value--
+        }
+        onTick(0)
+    }
+}
+fun playAudio(filePath: String) {
+    val fileResource = classLoader.getResource(filePath)
+    if (fileResource?.path.isNullOrEmpty().not()) {
+        val audioIn: AudioInputStream = AudioSystem.getAudioInputStream(fileResource)
+        val clip = AudioSystem.getClip()
+        clip.open(audioIn)
+        clip.start()
+        Thread.sleep((60 * 1000).toLong()) // The sleep time should be length of your wav file
+        clip.close()
+        audioIn.close()
+    } else {
+        println("File not found: $filePath")
+    }
 }

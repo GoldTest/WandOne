@@ -3,7 +3,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     kotlin("jvm")
     id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.serialization") version ("1.4.30")
+    id("org.jetbrains.kotlin.plugin.serialization") version ("1.9.21")
 }
 
 tasks.withType<JavaCompile> {
@@ -27,11 +27,11 @@ repositories {
 dependencies {
     //versions
     val voyagerVersion = "+"
-    val exposedVersion = "+"
+    val exposedVersion = "0.52.0"
     val sqliteVersion = "+" //0.44.1
     val h2Version = "+"
     val logbackVersion = "+" //1.2.11
-    val serializeVersion = "+" //1.1.1
+    val serializeVersion = "1.1.0" //
     val reorderVersion = "+" //0.9.6
 
     //desktop

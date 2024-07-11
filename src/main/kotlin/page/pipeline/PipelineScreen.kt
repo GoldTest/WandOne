@@ -37,6 +37,9 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import page.pipeline.PipeLineViewModel.pipelineService
+import page.pipeline.struct.Node
+import page.pipeline.struct.Pipeline
+import page.pipeline.struct.ProcessNode
 
 data class PipelineScreen(
     val pipeline: Pipeline? = null

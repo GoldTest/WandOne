@@ -27,4 +27,5 @@ object ToastViewModel {
 object SharedInstance {
     val scope = CoroutineScope(Dispatchers.IO + Job())
     val json = Json
+    val classLoader = SharedInstance.javaClass.classLoader
 }
