@@ -26,12 +26,12 @@ repositories {
 
 dependencies {
     //versions
-    val voyagerVersion = "+"
+    val voyagerVersion = "1.0.0"
     val exposedVersion = "0.52.0"
     val sqliteVersion = "+" //0.44.1
     val h2Version = "+"
     val logbackVersion = "+" //1.2.11
-    val serializeVersion = "1.1.0" //
+    val serializeVersion = "1.2.0" //
     val reorderVersion = "+" //0.9.6
 
     //desktop

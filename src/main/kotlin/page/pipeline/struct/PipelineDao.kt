@@ -1,6 +1,7 @@
 package page.pipeline.struct
 
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import model.SharedInstance.json
@@ -80,6 +81,7 @@ class PipelineService(private val database: Database) {
         updatePipelines()
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun toPipeline(row: ResultRow): Pipeline {
         return Pipeline(
             id = row[_PipeLine.id],
