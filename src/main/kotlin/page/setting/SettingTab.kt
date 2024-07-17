@@ -22,13 +22,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import func.getCurrentApplicationPath
-import func.hasAdminPermission
-import func.isStartupEnabled
-import func.setStartupEnabled
+import func.*
 import kotlinx.coroutines.launch
 import model.SharedInstance.scope
 import model.ToastViewModel.snack
+import view.ColumnGap
 
 
 object SettingTab : Tab {
@@ -59,7 +57,6 @@ fun SettingPage() {
 
     val startupEnabled = remember { mutableStateOf(isStartupEnabled()) }
     val exePath = remember { mutableStateOf(getCurrentApplicationPath()) }
-
 
 
     val pathText = AnnotatedString("当前 .exe 文件路径：\n${exePath.value}")
@@ -112,11 +109,34 @@ fun SettingPage() {
             )
         }
         Spacer(modifier = Modifier.height(SPACER_HEIGHT_12))
+
+
+        val hide = remember { mutableStateOf(getPrefValue("hideAfterLaunch")) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "启动后隐藏窗口")
+            Spacer(modifier = Modifier.width(4.dp))
+            Checkbox(
+                modifier = Modifier.size(24.dp),
+                checked = hide.value,
+                onCheckedChange = { isChecked ->
+                    run {
+                        hide.value = isChecked
+                        setPrefValue("hideAfterLaunch", isChecked)
+                    }
+                }
+            )
+        }
+
+
+        ColumnGap(12.dp)
+
         val clipboard = LocalClipboardManager.current
         ClickableText(pathText, onClick = {
             clipboard.setText(realPath)
             scope.launch {
-                snack.value.showSnackbar("复制成功","知道了")
+                snack.value.showSnackbar("复制成功", "知道了")
             }
         })
         Text(
@@ -125,9 +145,6 @@ fun SettingPage() {
                 fontSize = 13.sp
             )
         )
-
-
-
 
 
     }

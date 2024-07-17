@@ -74,6 +74,9 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
+            modules("java.sql") //db
+            modules("java.naming") //path
+            //includeAllModules = true
             packageName = "WandOne"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)

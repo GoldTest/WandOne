@@ -1,2 +1,0 @@
-package page.tools.struct
-

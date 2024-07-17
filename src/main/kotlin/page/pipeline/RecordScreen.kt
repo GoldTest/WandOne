@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import model.SharedInstance.scope
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.tempLog
+import view.ColumnGap
 
 class RecordScreen(
 ) : Screen {
@@ -73,7 +74,12 @@ fun Record(items: MutableList<String>) {
     Column {
         val state = rememberLazyListState()
 
+        Row {
+            Text("处理文件数：${items.size / 2}")
+        }
+        ColumnGap(12.dp)
         Box {
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(12.dp)
             ) {

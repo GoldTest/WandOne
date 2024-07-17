@@ -1,10 +1,15 @@
 package page.pipeline.struct
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import model.SharedInstance.json
+import model.SharedInstance.scope
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -15,7 +20,8 @@ object Database {
         Database.connect(
             url = "jdbc:sqlite:data/pipeline.db",
             user = "root",
-            driver = "org.sqlite.JDBC"
+            driver = "org.sqlite.JDBC",
+            password = "admin"
         )
     }
 }
@@ -42,6 +48,7 @@ class PipelineService(private val database: Database) {
     }
 
 
+    @OptIn(ExperimentalSerializationApi::class)
     fun createPipeline(pipeline: Pipeline) {
         transaction {
             _PipeLine.insert {

@@ -54,9 +54,10 @@ data class Pipeline(
                 }
                 if (processedData != false) {
                     hitLog.add(processedData.toString())
+                    hitLog.add("\n")
                 }
-                hitLog.add("\n")
             }
+            currentNodeDescribe.value = "已匹配 ${hitLog.size/2}"
         }
 
     }

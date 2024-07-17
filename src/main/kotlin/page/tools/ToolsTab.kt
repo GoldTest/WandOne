@@ -51,9 +51,6 @@ fun ToolsPage() {
         //卡路里
         Calorie()
         ColumnGap()
-        //戒欲
-        NoFap()
-        ColumnGap()
     }
 }
 

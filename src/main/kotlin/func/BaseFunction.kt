@@ -91,6 +91,15 @@ fun isStartupEnabled(): Boolean {
     return userPrefs.getBoolean(keyName, false)
 }
 
+fun getPrefValue(keyName: String): Boolean {
+    val userPrefs = Preferences.userRoot()
+    return userPrefs.getBoolean(keyName, false)
+}
+
+fun setPrefValue(keyName: String, enabled: Boolean) {
+    val userPrefs = Preferences.userRoot()
+    userPrefs.putBoolean(keyName, enabled)
+}
 
 fun readInputStream(inputStream: InputStream): String {
     val reader = BufferedReader(InputStreamReader(inputStream))
@@ -199,6 +208,7 @@ fun countdown(initialValue: Int, delayGap: Long = 1000, onTick: (Int) -> Unit) {
         onTick(0)
     }
 }
+
 fun playAudio(filePath: String) {
     val fileResource = classLoader.getResource(filePath)
     if (fileResource?.path.isNullOrEmpty().not()) {
