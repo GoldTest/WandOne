@@ -24,23 +24,23 @@ fun Tray(scope: ApplicationScope) {
         tooltip = APP_WINDOW_TITLE,
         onAction = { APPViewModel.isVisible.value = true },
         menu = {
-            Item(
-                "migrate service",
-                enabled = !fileMigrateViewModel.serviceRunningState.value,
-                onClick = {
-                    fileMigrateViewModel.fileMigrationService.start()
-                    fileMigrateViewModel.serviceState.value = "运行中，点击停止"
-                }
-            )
-
-            Item(
-                "close service",
-                enabled = fileMigrateViewModel.serviceRunningState.value,
-                onClick = {
-                    fileMigrateViewModel.fileMigrationService.stop()
-                    fileMigrateViewModel.serviceState.value = "启动服务"
-                }
-            )
+//            Item(
+//                "migrate service",
+//                enabled = !fileMigrateViewModel.serviceRunningState.value,
+//                onClick = {
+//                    fileMigrateViewModel.fileMigrationService.start()
+//                    fileMigrateViewModel.serviceState.value = "运行中，点击停止"
+//                }
+//            )
+//
+//            Item(
+//                "close service",
+//                enabled = fileMigrateViewModel.serviceRunningState.value,
+//                onClick = {
+//                    fileMigrateViewModel.fileMigrationService.stop()
+//                    fileMigrateViewModel.serviceState.value = "启动服务"
+//                }
+//            )
 
             Item(
                 "exit",
