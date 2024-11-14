@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="pipeline" uuid="a23411e8-d833-4326-a9d3-e8ed1a52536d">
+    <data-source source="LOCAL" name="pipeline [2]" uuid="3e820da2-b607-40b2-8ace-c4b9cc0428d4">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:D:\PPPP\Idea project\WandOne\data\pipeline.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:D:\Develop\Idea project\WandOne\data\pipeline.db</jdbc-url>
+      <jdbc-additional-properties>
+        <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
+      </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>

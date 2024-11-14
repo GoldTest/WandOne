@@ -8,6 +8,10 @@ const val APP_ICON = "icon1.png"
 //Window
 val APP_WINDOW_WIDTH = 500.dp
 val APP_WINDOW_HEIGHT = 900.dp
+
+val APP_WINDOW_WIDTH_WMODE = 1600.dp
+val APP_WINDOW_HEIGHT_WMODE = 900.dp
+
 val PAGE_START = 16.dp
 val PAGE_END = 16.dp
 val PAGE_TOP = 16.dp
@@ -20,6 +24,8 @@ const val DEFAULT_DOUYIN_SOURCE_FOLDER = "D:/STOP"
 const val DEFAULT_DOUYIN_DEST_FOLDER = "E:/抖音归档"
 
 //Tab
+const val TAB_Web3 = "Web3"
+const val TAB_AI = "智能"
 const val TAB_PIPELINE = "流动管线"
 const val TAB_MEDIA_MERGE = "媒体合并"
 const val TAB_SETTINGS = "设置"

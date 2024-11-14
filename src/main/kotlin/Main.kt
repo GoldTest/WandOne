@@ -1,3 +1,5 @@
+import APPViewModel.wideMode
+import APPViewModel.windowState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
@@ -16,9 +18,12 @@ fun main() = run {
 
         //window
         val viewModel = APPViewModel
-        val windowState = rememberWindowState()
-        windowState.size = DpSize(APP_WINDOW_WIDTH, APP_WINDOW_HEIGHT)
-        windowState.position = WindowPosition(Alignment.Center)
+        windowState.value.size =
+            if (viewModel.wideMode.value) DpSize(APP_WINDOW_WIDTH_WMODE, APP_WINDOW_HEIGHT_WMODE) else DpSize(
+                APP_WINDOW_WIDTH,
+                APP_WINDOW_HEIGHT
+            )
+        windowState.value.position = WindowPosition(Alignment.Center)
         Tray(this)
         val icon = painterResource(APP_ICON)
         Window(
@@ -26,10 +31,10 @@ fun main() = run {
             visible = viewModel.isVisible.value,
             icon = icon,
             title = APP_WINDOW_TITLE,
-            state = windowState
+            state = windowState.value
         ) {
             MaterialTheme {
-                App(viewModel = viewModel)
+                APP(viewModel = viewModel)
             }
         }
     }

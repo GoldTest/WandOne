@@ -15,16 +15,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
-object Database {
-    val database by lazy {
-        Database.connect(
-            url = "jdbc:sqlite:data/pipeline.db",
-            user = "root",
-            driver = "org.sqlite.JDBC",
-            password = "admin"
-        )
-    }
-}
 
 class PipelineService(private val database: Database) {
     private val _pipelineFlow = MutableStateFlow<MutableList<Pipeline>>(mutableListOf())
@@ -48,7 +38,6 @@ class PipelineService(private val database: Database) {
     }
 
 
-    @OptIn(ExperimentalSerializationApi::class)
     fun createPipeline(pipeline: Pipeline) {
         transaction {
             _PipeLine.insert {

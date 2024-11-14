@@ -91,14 +91,49 @@ fun isStartupEnabled(): Boolean {
     return userPrefs.getBoolean(keyName, false)
 }
 
-fun getPrefValue(keyName: String): Boolean {
-    val userPrefs = Preferences.userRoot()
-    return userPrefs.getBoolean(keyName, false)
+//fun getPrefValue(keyName: String): Boolean {
+//    val userPrefs = Preferences.userRoot()
+//    return userPrefs.getBoolean(keyName, false)
+//}
+//fun getPrefValue(keyName: String, defaultValue: Any): Any {
+//    val userPrefs = Preferences.userRoot().node("")
+//    return when (defaultValue) {
+//        is Boolean -> userPrefs.getBoolean(keyName, defaultValue)
+//        is String -> userPrefs.get(keyName, defaultValue)
+//        is Int -> userPrefs.getInt(keyName, defaultValue)
+//        is Long -> userPrefs.getLong(keyName, defaultValue)
+//        is Float -> userPrefs.getFloat(keyName, defaultValue)
+//        is Double -> userPrefs.getDouble(keyName, defaultValue)
+//        is ByteArray -> userPrefs.getByteArray(keyName, defaultValue)
+//        else -> throw IllegalArgumentException("Unsupported type: ${defaultValue.javaClass}")
+//    }
+//}
+fun <T> getPrefValue(keyName: String, defaultValue: T): T {
+    val userPrefs = Preferences.userRoot().node("")
+    return when (defaultValue) {
+        is Boolean -> userPrefs.getBoolean(keyName, defaultValue)
+        is String -> userPrefs.get(keyName, defaultValue)
+        is Int -> userPrefs.getInt(keyName, defaultValue)
+        is Long -> userPrefs.getLong(keyName, defaultValue)
+        is Float -> userPrefs.getFloat(keyName, defaultValue)
+        is Double -> userPrefs.getDouble(keyName, defaultValue)
+        is ByteArray -> userPrefs.getByteArray(keyName, defaultValue)
+        else -> throw IllegalArgumentException("Unsupported type: $defaultValue")
+    } as T
 }
 
-fun setPrefValue(keyName: String, enabled: Boolean) {
+fun setPrefValue(keyName: String, value: Any) {
     val userPrefs = Preferences.userRoot()
-    userPrefs.putBoolean(keyName, enabled)
+    when (value) {
+        is Boolean -> userPrefs.putBoolean(keyName, value)
+        is String -> userPrefs.put(keyName, value)
+        is Int -> userPrefs.putInt(keyName, value)
+        is Long -> userPrefs.putLong(keyName, value)
+        is Float -> userPrefs.putFloat(keyName, value)
+        is Double -> userPrefs.putDouble(keyName, value)
+        is ByteArray -> userPrefs.putByteArray(keyName, value)
+        else -> throw IllegalArgumentException("Unsupported type: ${value.javaClass}")
+    }
 }
 
 fun readInputStream(inputStream: InputStream): String {
@@ -222,4 +257,9 @@ fun playAudio(filePath: String) {
     } else {
         println("File not found: $filePath")
     }
+}
+
+fun getPrivateKey(workspace: String, name: String): String {
+
+    return ""
 }

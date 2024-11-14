@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
@@ -19,10 +18,12 @@ import page.media.MediaProcessTab
 import page.pipeline.PipelineTab
 import page.setting.SettingTab
 import page.tools.ToolsTab
+import page.web3.AITab
+import page.web3.Web3Tab
 
 @Preview
 @Composable
-fun App(viewModel: APPViewModel) {
+fun APP(viewModel: APPViewModel) {
     val scaffoldState = rememberScaffoldState()
 
     TabNavigator(ToolsTab) { navigator ->
@@ -33,6 +34,8 @@ fun App(viewModel: APPViewModel) {
             },
             topBar = {
                 BottomNavigation() {
+                    TabNavigationItem(AITab)
+                    TabNavigationItem(Web3Tab)
                     TabNavigationItem(ToolsTab)
                     TabNavigationItem(PipelineTab)
                     TabNavigationItem(MediaProcessTab)

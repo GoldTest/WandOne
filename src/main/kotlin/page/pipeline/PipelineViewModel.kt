@@ -1,8 +1,8 @@
 package page.pipeline
 
+import APPViewModel.database
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import page.pipeline.struct.Database.database
 import page.pipeline.struct.InputNode
 import page.pipeline.struct.PipelineService
 import page.pipeline.struct.ProcessNode

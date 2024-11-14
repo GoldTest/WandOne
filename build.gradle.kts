@@ -19,9 +19,10 @@ group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    google()
+    gradlePluginPortal()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    google()
 }
 
 dependencies {
@@ -56,6 +57,7 @@ dependencies {
 
     //log
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
 //    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 //    implementation("org.apache.logging.log4j:log4j-api:2.14.0")
 //    implementation("org.apache.logging.log4j:log4j-core:2.14.0")
@@ -67,9 +69,30 @@ dependencies {
     implementation("org.burnoutcrew.composereorderable:reorderable:$reorderVersion")
 
 
+
+    implementation("com.alibaba:dashscope-sdk-java:+")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.0")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx3:1.6.0")
+
+
+//    implementation("org.commonmark:commonmark:0.24.0")
+
+    implementation("com.mikepenz:multiplatform-markdown-renderer:0.27.0")
+
+    // Offers Material 2 defaults for Material 2 themed apps (com.mikepenz.markdown.m2.Markdown)
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m2:0.27.0")
+
+    // Offers Material 3 defaults for Material 3 themed apps (com.mikepenz.markdown.m3.Markdown)
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.27.0")
+
+    implementation("com.mikepenz:multiplatform-markdown-renderer-jvm:0.27.0")
+
 }
 
 compose.desktop {
+
     application {
         mainClass = "MainKt"
 

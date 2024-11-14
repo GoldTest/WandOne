@@ -48,3 +48,6 @@ fun ColumnGap(gap: Dp = 12.dp) {
 fun RowGap(gap: Dp = 12.dp) {
     Spacer(Modifier.width(gap))
 }
+
+fun commonMarkdownColors(){}
+fun commonMarkdownTypography(){}
