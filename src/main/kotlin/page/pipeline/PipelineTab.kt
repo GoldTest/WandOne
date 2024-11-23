@@ -49,7 +49,7 @@ object PipelineTab : Tab, FabAction {
             val painter = painterResource("icons/media.svg")
             return remember {
                 TabOptions(
-                    index = 0u,
+                    index = 2u,
                     title = title,
                     icon = painter
                 )
@@ -58,7 +58,7 @@ object PipelineTab : Tab, FabAction {
 
     @Composable
     override fun Content() {
-        PipelinePage()
+        pipelinePage()
     }
 
     override fun onFabClicked() {
@@ -69,14 +69,14 @@ object PipelineTab : Tab, FabAction {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 @Preview
-fun Tab.PipelinePage(
+fun Tab.pipelinePage(
 ) {
     LifecycleEffect(
         onStarted = { },
         onDisposed = { }
     )
     BottomSheetNavigator {
-        Navigator(page.pipeline.PipelinePage())
+        Navigator(PipelinePage())
     }
 }
 

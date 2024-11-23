@@ -43,7 +43,7 @@ fun Tomato() {
             },
 //            shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
             colors = ButtonDefaults.buttonColors(
-                backgroundColor = lerp(Color.Red, Color.White,0.5f),
+                backgroundColor = lerp(Color.Red, Color.White, 0.5f),
                 contentColor = Color.Black
             )
         ) {
@@ -60,7 +60,7 @@ fun Tomato() {
                 showPlantation.value = !showPlantation.value
             },
             colors = ButtonDefaults.buttonColors(
-                backgroundColor = lerp(Color.Green, Color.White,0.5f) ,
+                backgroundColor = lerp(Color.Green, Color.White, 0.5f),
                 contentColor = Color.Black
             )
         ) {

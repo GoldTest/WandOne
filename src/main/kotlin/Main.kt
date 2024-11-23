@@ -1,4 +1,3 @@
-import APPViewModel.wideMode
 import APPViewModel.windowState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Alignment
@@ -34,7 +33,7 @@ fun main() = run {
             state = windowState.value
         ) {
             MaterialTheme {
-                APP(viewModel = viewModel)
+                app()
             }
         }
     }

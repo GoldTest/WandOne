@@ -49,7 +49,7 @@ object SettingTab : Tab {
             val icon = painterResource("icons/setting.svg")
             return remember {
                 TabOptions(
-                    index = 2u, title = title, icon = icon
+                    index = 0u, title = title, icon = icon
                 )
             }
         }
@@ -224,7 +224,7 @@ fun keyAdd(workKey: ApiKey, delete: (key: ApiKey) -> Unit) {
     }
     val key = remember { mutableStateOf("") }
     if (showEdit.value) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(value = key.value, onValueChange = {
                 key.value = it
             }, label = {
@@ -250,7 +250,7 @@ fun keyAdd(workKey: ApiKey, delete: (key: ApiKey) -> Unit) {
     }
     LazyColumn {
         itemsIndexed(keys) { index, item ->
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = workKey.defaultKey.trim() == item.trim(), onClick = {
                     if (workKey.workSpace.isNotBlank()) {
                         val apiKey =

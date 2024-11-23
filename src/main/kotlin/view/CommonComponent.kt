@@ -11,8 +11,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
@@ -51,3 +54,18 @@ fun RowGap(gap: Dp = 12.dp) {
 
 fun commonMarkdownColors(){}
 fun commonMarkdownTypography(){}
+
+fun Modifier.detectRightClick(onRightClick: (Offset) -> Unit): Modifier {
+    return pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent()
+                if (event.type == androidx.compose.ui.input.pointer.PointerEventType.Press &&
+                    event.buttons.isSecondaryPressed
+                ) {
+                    onRightClick(event.changes.first().position)
+                }
+            }
+        }
+    }
+}

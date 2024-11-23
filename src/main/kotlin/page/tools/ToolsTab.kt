@@ -24,7 +24,7 @@ object ToolsTab : Tab {
             val icon = painterResource("icons/bolt.svg")
             return remember {
                 TabOptions(
-                    index = 2u,
+                    index = 3u,
                     title = title,
                     icon = icon
                 )
@@ -52,6 +52,7 @@ fun ToolsPage() {
         Calorie()
         ColumnGap()
 
+        // 食物选择器
 
 
     }

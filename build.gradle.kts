@@ -1,19 +1,33 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+
     kotlin("jvm")
+//    kotlin("multiplatform")
+//    kotlin("plugin.compose")
+
+//    alias(libs.plugins.jetbrainsCompose) apply false
+    alias(libs.plugins.composeCompiler) apply false
+//    alias(libs.plugins.kotlinMultiplatform) apply false
+//    alias(libs.plugins.compose.compiler) apply false
+
+//    id("java-platform")
     id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.serialization") version ("1.9.21")
+    id("org.jetbrains.kotlin.plugin.serialization") version ("2.0.0-RC1")
 }
 
 tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.VERSION_18.toString()
     targetCompatibility = JavaVersion.VERSION_18.toString()
 }
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class) {
-    kotlinOptions.jvmTarget = "18"
+kotlin.compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_18)
 }
+//
+//tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class) {
+//    kotlinOptions.jvmTarget = "18"
+//}
 
 group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
@@ -26,17 +40,19 @@ repositories {
 }
 
 dependencies {
+//    api(platform(project(":platform")))
+
     //versions
     val voyagerVersion = "1.0.0"
     val exposedVersion = "0.52.0"
     val sqliteVersion = "+" //0.44.1
     val h2Version = "+"
-    val logbackVersion = "+" //1.2.11
     val serializeVersion = "1.2.0" //
     val reorderVersion = "+" //0.9.6
 
     //desktop
     implementation(compose.desktop.currentOs)
+    implementation(kotlin("stdlib"))
     //navigator
     implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
     implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
@@ -56,7 +72,7 @@ dependencies {
     implementation("com.h2database:h2:$h2Version")
 
     //log
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+//    implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
 //    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 //    implementation("org.apache.logging.log4j:log4j-api:2.14.0")
@@ -89,8 +105,27 @@ dependencies {
 
     implementation("com.mikepenz:multiplatform-markdown-renderer-jvm:0.27.0")
 
-}
+    implementation(compose.components.resources)
 
+    implementation("io.ktor:ktor-client-core:3.0.0")
+    implementation("io.ktor:ktor-client-cio:3.0.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")
+
+//    implementation("io.github.kevinnzou:compose-webview:0.33.6") //android only
+//    https://github.com/MohamedRejeb/Calf good ui
+    implementation("com.mohamedrejeb.calf:calf-webview:0.6.1")
+    implementation("com.mohamedrejeb.calf:calf-ui:0.6.1")
+    implementation("com.mohamedrejeb.calf:calf-file-picker:0.6.1")
+
+
+}
+compose.resources {
+    customDirectory(
+        sourceSetName = "desktopMain",
+        directoryProvider = provider { layout.projectDirectory.dir("desktopResources") }
+    )
+}
 compose.desktop {
 
     application {
@@ -118,3 +153,4 @@ compose.desktop {
         }
     }
 }
+

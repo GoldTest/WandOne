@@ -1,9 +1,15 @@
 package func
 
 import APP_PATH
-import androidx.compose.runtime.*
-import kotlinx.coroutines.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import model.SharedInstance.classLoader
+import model.SharedInstance.gson
 import java.io.*
 import java.nio.file.Files
 import java.util.prefs.Preferences
@@ -128,12 +134,28 @@ fun setPrefValue(keyName: String, value: Any) {
         is Boolean -> userPrefs.putBoolean(keyName, value)
         is String -> userPrefs.put(keyName, value)
         is Int -> userPrefs.putInt(keyName, value)
+        is UShort -> userPrefs.putInt(keyName, value.toInt())
         is Long -> userPrefs.putLong(keyName, value)
         is Float -> userPrefs.putFloat(keyName, value)
         is Double -> userPrefs.putDouble(keyName, value)
         is ByteArray -> userPrefs.putByteArray(keyName, value)
         else -> throw IllegalArgumentException("Unsupported type: ${value.javaClass}")
     }
+}
+
+fun setPrefJson(keyName: String, map: Map<String, Any>) {
+    val userPrefs = Preferences.userRoot()
+    val currentMap = getPrefJson(keyName)
+    val json = gson.toJson(currentMap?.toMutableMap()?.apply {
+        putAll(map)
+    })
+    userPrefs.put(keyName, json)
+}
+
+fun getPrefJson(keyName: String): Map<String, Any>? {
+    val typeToken = object : TypeToken<Map<String, Any>>() {}.type
+    val map = gson.fromJson<Map<String, Any>>(getPrefValue(keyName, ""), typeToken)
+    return map
 }
 
 fun readInputStream(inputStream: InputStream): String {

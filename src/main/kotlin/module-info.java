@@ -23,14 +23,22 @@ module WandOne.main {
     requires exposed.core;
     requires material.icons.core.desktop;
     requires reorderable.jvm;
-    requires kotlinx.serialization.json.jvm;
-    requires kotlinx.serialization.core.jvm;
+//    requires kotlinx.serialization.json.jvm;
+//    requires kotlinx.serialization.core.jvm;
     requires dashscope.sdk.java;
     requires io.reactivex.rxjava2;
     requires kotlinx.coroutines.reactive;
     requires multiplatform.markdown.renderer.jvm;
     requires multiplatform.markdown.renderer.m2.jvm;
     requires ui.util.desktop;
+    requires library.desktop;
+    requires io.ktor.client.core;
+    requires io.ktor.client.content.negotiation;
+    requires io.ktor.serialization.kotlinx.json;
+    requires kotlinx.serialization.core;
+    requires io.ktor.http;
+    requires kotlinx.serialization.json;
+    requires com.google.gson;
 //    requires multiplatform.markdown.renderer.m2.jvm;
 //    requires jdk.hotspot.agent;
 }

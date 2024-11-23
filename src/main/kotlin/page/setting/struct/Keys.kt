@@ -1,11 +1,13 @@
 package page.setting.struct
 
+import APPViewModel.globalScope
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import cafe.adriel.voyager.core.screen.ScreenKey
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import func.getPrefValue
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import model.SharedInstance.json
@@ -20,12 +22,22 @@ import page.tools.struct.baseCalorie
 class KeysService(private val database: Database) {
     private val _keyFlow = MutableStateFlow<MutableList<ApiKey>>(mutableListOf())
     val keyFlow = _keyFlow.asStateFlow()
+
     init {
         transaction(database) {
             SchemaUtils.create(_Key)
         }
         update()
     }
+
+    val defaultKey
+        get() =
+            _keyFlow.value.find {
+                it.workSpace == getPrefValue(
+                    "aiapi",
+                    "tongyi"
+                ) && it.defaultKey.isNotBlank()
+            }?.defaultKey
 
     fun update() {
         _keyFlow.value = transaction { _Key.selectAll().map { toApiKey(it) }.toMutableList() }
@@ -87,15 +99,6 @@ class KeysService(private val database: Database) {
 data class ApiKey(
     val workSpace: String = "",
     val defaultKey: String = "",
-    val keys: MutableList<String>
-) {
-    fun setDefaultKey(key: String) {
-
-    }
-
-    fun setWorkSpaceName(workSpace: String) {
-
-    }
-
-}
+    val keys: MutableList<String>,
+)
 
