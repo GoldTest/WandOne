@@ -21,7 +21,15 @@ import page.pipeline.PipelineTab
 import page.setting.SettingTab
 import page.tools.ToolsTab
 import page.ai.AITab
+import page.ai.AITab.AITab
+import page.media.MediaProcessTab.MediaProcessTab
+import page.pipeline.PipelineTab.PipelineTab
+import page.setting.SettingTab.SettingTab
+import page.tools.ToolsTab.ToolsTab
+import page.trade.TradeTab
+import page.trade.TradeTab.TradeTab
 import page.web3.Web3Tab
+import page.web3.Web3Tab.Web3Tab
 
 @Preview
 @Composable
@@ -30,13 +38,14 @@ fun app() {
 
     val currentIndex = getPrefValue("tab", 0)
     val currentTab = when (currentIndex) {
+        6 -> TradeTab
         5 -> AITab
         4 -> Web3Tab
         3 -> ToolsTab
         2 -> PipelineTab
         1 -> MediaProcessTab
         0 -> SettingTab
-        else -> AITab
+        else -> SettingTab
     }
 
     TabNavigator(currentTab) { navigator ->
@@ -47,12 +56,13 @@ fun app() {
             },
             topBar = {
                 BottomNavigation() {
-                    TabNavigationItem(AITab)
-                    TabNavigationItem(Web3Tab)
-                    TabNavigationItem(ToolsTab)
-                    TabNavigationItem(PipelineTab)
-                    TabNavigationItem(MediaProcessTab)
-                    TabNavigationItem(SettingTab)
+                    TabNavigationItem(TradeTab(6))
+                    TabNavigationItem(AITab(5))
+                    TabNavigationItem(Web3Tab(4))
+                    TabNavigationItem(ToolsTab(3))
+                    TabNavigationItem(PipelineTab(2))
+                    TabNavigationItem(MediaProcessTab(1))
+                    TabNavigationItem(SettingTab(0))
                 }
             },
             floatingActionButton = {

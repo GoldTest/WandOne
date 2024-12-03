@@ -41,7 +41,11 @@ import view.customScrollable
 
 object PipelineTab : Tab, FabAction {
     private fun readResolve(): Any = PipelineTab
-
+    var index: UShort = 0u
+    fun PipelineTab(index: Int): PipelineTab {
+        this.index = index.toUShort()
+        return PipelineTab
+    }
     override val options: TabOptions
         @Composable
         get() {
@@ -49,7 +53,7 @@ object PipelineTab : Tab, FabAction {
             val painter = painterResource("icons/media.svg")
             return remember {
                 TabOptions(
-                    index = 2u,
+                    index = index,
                     title = title,
                     icon = painter
                 )

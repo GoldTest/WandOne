@@ -1,7 +1,8 @@
-package page.web3
+package page.trade
 
 import PAGE_END
 import PAGE_START
+import TAB_Trade
 import TAB_Web3
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
@@ -24,17 +25,17 @@ import page.web3.henge.autoHenge
 import view.RowGap
 
 
-object Web3Tab : Tab {
-    private fun readResolve(): Any = Web3Tab
+object TradeTab : Tab {
+    private fun readResolve(): Any = TradeTab
     var index: UShort = 0u
-    fun Web3Tab(index: Int): Web3Tab {
+    fun TradeTab(index: Int): TradeTab {
         this.index = index.toUShort()
-        return Web3Tab
+        return TradeTab
     }
     override val options: TabOptions
         @Composable
         get() {
-            val title = TAB_Web3
+            val title = TAB_Trade
             val icon = painterResource("icons/settingInput.svg")
             return remember {
                 TabOptions(
@@ -47,25 +48,16 @@ object Web3Tab : Tab {
 
     @Composable
     override fun Content() {
-        web3Page()
+        tradePage()
     }
 }
 
 @Composable
 @Preview
-fun web3Page() {
+fun tradePage() {
     Column(
         modifier = Modifier.padding(start = PAGE_START, end = PAGE_END)
     ) {
-        Column {
-            Text("poly相关")
-            Text("自动对冲 1，加权分配，2，倾斜分配")
-            Text(
-                "auto in策略 分份额 一份一份参与 挂单、可吃单、可吃单数量、比分、 稳定度、稳定值" +
-                        "倾斜、倾斜程度、吃单买 挂单买"
-            )
-            Text("分配份额， 可盈利，盈利值，列表，时间")
-        }
 
         val pages = listOf(
             0 to "对冲",
@@ -74,7 +66,7 @@ fun web3Page() {
             3 to "交易自动策略",
             4 to "交易套利对冲",
         )
-        var page by remember { mutableStateOf(getPrefValue("web3Page", 0)) }
+        var page by remember { mutableStateOf(getPrefValue("tradePage", 0)) }
 
         Row {
             pages.forEachIndexed { index, (pageId, text) ->
@@ -84,19 +76,17 @@ fun web3Page() {
                     ),
                     onClick = {
                         page = pageId
-                        setPrefValue("web3Page", pageId)
+                        setPrefValue("tradePage", pageId)
                     }
                 ) {
                     Text(text)
                 }
                 RowGap()
-                if (index == 2) Spacer(Modifier.weight(1f))
             }
         }
         when (page) {
-            0 -> autoHenge(page)
-            1 -> Text("自动介入")
-            2 -> Text("api 调试")
+            1 -> Text("1111")
+            2 -> Text("22222")
         }
     }
 }

@@ -60,6 +60,12 @@ import view.RowGap
 
 
 object AITab : Tab {
+    var index: UShort = 0u
+    fun AITab(index: Int): AITab {
+        this.index = index.toUShort()
+        return AITab
+    }
+
     private fun readResolve(): Any = Web3Tab
     override val options: TabOptions
         @Composable get() {
@@ -67,7 +73,7 @@ object AITab : Tab {
             val icon = painterResource(Res.drawable.tuneSimple)
             return remember {
                 TabOptions(
-                    index = 5u, title = title, icon = icon
+                    index = index, title = title, icon = icon
                 )
             }
         }
@@ -103,58 +109,64 @@ class AiPage() : Screen {
             modifier = Modifier.padding(start = PAGE_START, end = PAGE_END),
         ) {
             Row {
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == TONGYI) MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    setPrefValue("aiapi", TONGYI)
-                    page.value = TONGYI
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == TONGYI) MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        setPrefValue("aiapi", TONGYI)
+                        page.value = TONGYI
+                    }) {
                     Text("千问")
                 }
                 RowGap()
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == GEMINI) MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    setPrefValue("aiapi", GEMINI)
-                    page.value = GEMINI
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == GEMINI) MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        setPrefValue("aiapi", GEMINI)
+                        page.value = GEMINI
+                    }) {
                     Text(GEMINI)
                 }
                 RowGap()
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == XAI) MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    setPrefValue("aiapi", XAI)
-                    page.value = XAI
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == XAI) MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        setPrefValue("aiapi", XAI)
+                        page.value = XAI
+                    }) {
                     Text(XAI)
                 }
                 Spacer(modifier = Modifier.weight(1f))
 
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == "archive") MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    setPrefValue("aiapi", "archive")
-                    page.value = "archive"
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == "archive") MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        setPrefValue("aiapi", "archive")
+                        page.value = "archive"
+                    }) {
                     Text("archive")
                 }
                 RowGap()
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == "param") MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    setPrefValue("aiapi", "param")
-                    page.value = "param"
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == "param") MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        setPrefValue("aiapi", "param")
+                        page.value = "param"
+                    }) {
                     Text("param")
                 }
                 RowGap()
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (page.value == "prompt") MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    page.value = "prompt"
-                    setPrefValue("aiapi", "prompt")
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (page.value == "prompt") MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        page.value = "prompt"
+                        setPrefValue("aiapi", "prompt")
+                    }) {
                     Text("prompt")
                 }
             }
@@ -197,12 +209,13 @@ fun messageItem(msg: Message) {
             Text("收藏")
         }
     }
-    Box(modifier = Modifier.background(backgroundColor, RoundedCornerShape(8.dp))
-        .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 12.dp).clickable {}.pointerInput(Unit) {
-            detectTapGestures(onDoubleTap = { offset ->
-                dropDownState.status = DropdownMenuState.Status.Open(offset)
-            })
-        }) {
+    Box(
+        modifier = Modifier.background(backgroundColor, RoundedCornerShape(8.dp))
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 12.dp).clickable {}.pointerInput(Unit) {
+                detectTapGestures(onDoubleTap = { offset ->
+                    dropDownState.status = DropdownMenuState.Status.Open(offset)
+                })
+            }) {
 
         val isDarkTheme = isSystemInDarkTheme()
         val highlightsBuilder = remember(isDarkTheme) {

@@ -24,6 +24,7 @@ const val DEFAULT_DOUYIN_SOURCE_FOLDER = "D:/STOP"
 const val DEFAULT_DOUYIN_DEST_FOLDER = "E:/抖音归档"
 
 //Tab
+const val TAB_Trade = "交易"
 const val TAB_Web3 = "Web3"
 const val TAB_AI = "智能"
 const val TAB_PIPELINE = "流动管线"

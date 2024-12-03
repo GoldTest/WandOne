@@ -17,6 +17,11 @@ import view.ColumnGap
 
 object ToolsTab : Tab {
     private fun readResolve(): Any = ToolsTab
+    var index: UShort = 0u
+    fun ToolsTab(index: Int): ToolsTab {
+        this.index = index.toUShort()
+        return ToolsTab
+    }
     override val options: TabOptions
         @Composable
         get() {
@@ -24,7 +29,7 @@ object ToolsTab : Tab {
             val icon = painterResource("icons/bolt.svg")
             return remember {
                 TabOptions(
-                    index = 3u,
+                    index = index,
                     title = title,
                     icon = icon
                 )

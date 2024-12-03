@@ -43,13 +43,18 @@ import view.RowGap
 
 object SettingTab : Tab {
     private fun readResolve(): Any = SettingTab
+    var index: UShort = 0u
+    fun SettingTab(index: Int): SettingTab {
+        this.index = index.toUShort()
+        return SettingTab
+    }
     override val options: TabOptions
         @Composable get() {
             val title = TAB_SETTINGS
             val icon = painterResource("icons/setting.svg")
             return remember {
                 TabOptions(
-                    index = 0u, title = title, icon = icon
+                    index = index, title = title, icon = icon
                 )
             }
         }

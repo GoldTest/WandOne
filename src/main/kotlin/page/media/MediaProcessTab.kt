@@ -20,7 +20,11 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 
 object MediaProcessTab : Tab {
     private fun readResolve(): Any = MediaProcessTab
-
+    var index: UShort = 0u
+    fun MediaProcessTab(index: Int): MediaProcessTab {
+        this.index = index.toUShort()
+        return MediaProcessTab
+    }
     override val options: TabOptions
         @Composable
         get() {
@@ -29,7 +33,7 @@ object MediaProcessTab : Tab {
 
             return remember {
                 TabOptions(
-                    index = 1u,
+                    index = index,
                     title = title,
                     icon = icon
                 )
