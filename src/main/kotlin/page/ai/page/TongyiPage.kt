@@ -1,5 +1,6 @@
 package page.ai.page
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,12 +20,22 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.mikepenz.markdown.coil3.Coil3ImageTransformerImpl
 import com.mikepenz.markdown.compose.Markdown
+import com.mikepenz.markdown.compose.components.markdownComponents
+import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeBlock
+import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeFence
+import com.mikepenz.markdown.compose.extendedspans.ExtendedSpans
+import com.mikepenz.markdown.compose.extendedspans.RoundedCornerSpanPainter
+import com.mikepenz.markdown.compose.extendedspans.SquigglyUnderlineSpanPainter
+import com.mikepenz.markdown.compose.extendedspans.rememberSquigglyUnderlineAnimator
 import com.mikepenz.markdown.m2.markdownColor
 import com.mikepenz.markdown.m2.markdownTypography
+import com.mikepenz.markdown.model.markdownExtendedSpans
+import dev.snipme.highlights.Highlights
+import dev.snipme.highlights.model.SyntaxThemes
 import page.ai.AiViewModel
 import page.ai.messageItem
-import androidx.compose.runtime.getValue
 import view.RowGap
 
 @Composable
@@ -48,12 +59,39 @@ fun tongyiPage(viewModel: AiViewModel) {
                 messageItem(msg)
             }
             item {
-                if (lastMsg.value.isNotBlank()) Markdown(
-                    modifier = Modifier.padding(8.dp),
-                    content = lastMsg.value,
-                    colors = markdownColor(),
-                    typography = markdownTypography()
-                )
+                if (lastMsg.value.isNotBlank()) {
+                    val isDarkTheme = isSystemInDarkTheme()
+                    val highlightsBuilder = remember(isDarkTheme) {
+                        Highlights.Builder().theme(SyntaxThemes.atom(darkMode = isDarkTheme))
+                    }
+                    Markdown(
+                        content = lastMsg.value,
+                        components = markdownComponents(
+                            codeBlock = { MarkdownHighlightedCodeBlock(it.content, it.node, highlightsBuilder) },
+                            codeFence = { MarkdownHighlightedCodeFence(it.content, it.node, highlightsBuilder) },
+                        ),
+                        imageTransformer = Coil3ImageTransformerImpl,
+                        extendedSpans = markdownExtendedSpans {
+                            val animator = rememberSquigglyUnderlineAnimator()
+                            remember {
+                                ExtendedSpans(
+                                    RoundedCornerSpanPainter(),
+                                    SquigglyUnderlineSpanPainter(animator = animator)
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(8.dp),
+                        colors = markdownColor(),
+                        typography = markdownTypography()
+                    )
+
+//                    Markdown(
+//                        modifier = Modifier.padding(8.dp),
+//                        content = lastMsg.value,
+//                        colors = markdownColor(),
+//                        typography = markdownTypography()
+//                    )
+                }
             }
         }
         LaunchedEffect(lastMsg.value) {
@@ -70,23 +108,24 @@ fun tongyiPage(viewModel: AiViewModel) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            TextField(value = input, onValueChange = { newValue ->
-                input = newValue
-            }, label = { Text("输入内容") }, maxLines = 5, keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done
-            ), keyboardActions = KeyboardActions(onDone = {
-                //no use because max lines
-                viewModel.handleInput(input, lastMsg, stop)
-                input = ""
-            }), modifier = Modifier.weight(1f).onPreviewKeyEvent { event ->
-                if (event.key == Key.Enter) {
+            TextField(
+                value = input, onValueChange = { newValue ->
+                    input = newValue
+                }, label = { Text("输入内容") }, maxLines = 5, keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ), keyboardActions = KeyboardActions(onDone = {
+                    //no use because max lines
                     viewModel.handleInput(input, lastMsg, stop)
                     input = ""
-                    true
-                } else {
-                    false
-                }
-            })
+                }), modifier = Modifier.weight(1f).onPreviewKeyEvent { event ->
+                    if (event.key == Key.Enter) {
+                        viewModel.handleInput(input, lastMsg, stop)
+                        input = ""
+                        true
+                    } else {
+                        false
+                    }
+                })
             RowGap(8.dp)
             Button(
                 onClick = {

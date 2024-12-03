@@ -11,6 +11,7 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -33,9 +34,20 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.alibaba.dashscope.common.Message
 import com.alibaba.dashscope.common.Role
+import com.mikepenz.markdown.coil3.Coil3ImageTransformerImpl
 import com.mikepenz.markdown.compose.Markdown
+import com.mikepenz.markdown.compose.components.markdownComponents
+import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeBlock
+import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeFence
+import com.mikepenz.markdown.compose.extendedspans.ExtendedSpans
+import com.mikepenz.markdown.compose.extendedspans.RoundedCornerSpanPainter
+import com.mikepenz.markdown.compose.extendedspans.SquigglyUnderlineSpanPainter
+import com.mikepenz.markdown.compose.extendedspans.rememberSquigglyUnderlineAnimator
 import com.mikepenz.markdown.m2.markdownColor
 import com.mikepenz.markdown.m2.markdownTypography
+import com.mikepenz.markdown.model.markdownExtendedSpans
+import dev.snipme.highlights.Highlights
+import dev.snipme.highlights.model.SyntaxThemes
 import func.getPrefValue
 import func.setPrefValue
 import kotlinx.coroutines.launch
@@ -191,8 +203,29 @@ fun messageItem(msg: Message) {
                 dropDownState.status = DropdownMenuState.Status.Open(offset)
             })
         }) {
+
+        val isDarkTheme = isSystemInDarkTheme()
+        val highlightsBuilder = remember(isDarkTheme) {
+            Highlights.Builder().theme(SyntaxThemes.atom(darkMode = isDarkTheme))
+        }
         Markdown(
-            content = msg.content, colors = markdownColor(), typography = markdownTypography()
+            content = msg.content,
+            components = markdownComponents(
+                codeBlock = { MarkdownHighlightedCodeBlock(it.content, it.node, highlightsBuilder) },
+                codeFence = { MarkdownHighlightedCodeFence(it.content, it.node, highlightsBuilder) },
+            ),
+            imageTransformer = Coil3ImageTransformerImpl,
+            extendedSpans = markdownExtendedSpans {
+                val animator = rememberSquigglyUnderlineAnimator()
+                remember {
+                    ExtendedSpans(
+                        RoundedCornerSpanPainter(),
+                        SquigglyUnderlineSpanPainter(animator = animator)
+                    )
+                }
+            },
+            colors = markdownColor(),
+            typography = markdownTypography()
         )
     }
 }

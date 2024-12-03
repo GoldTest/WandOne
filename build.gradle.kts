@@ -8,7 +8,7 @@ plugins {
 //    kotlin("plugin.compose")
 
 //    alias(libs.plugins.jetbrainsCompose) apply false
-    alias(libs.plugins.composeCompiler) apply false
+//    alias(libs.plugins.composeCompiler) apply false
 //    alias(libs.plugins.kotlinMultiplatform) apply false
 //    alias(libs.plugins.compose.compiler) apply false
 
@@ -24,10 +24,6 @@ tasks.withType<JavaCompile> {
 kotlin.compilerOptions {
     jvmTarget.set(JvmTarget.JVM_18)
 }
-//
-//tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class) {
-//    kotlinOptions.jvmTarget = "18"
-//}
 
 group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
@@ -52,6 +48,9 @@ dependencies {
 
     //desktop
     implementation(compose.desktop.currentOs)
+    implementation(compose.foundation)
+    implementation(compose.material)
+    implementation(compose.material3)
     implementation(kotlin("stdlib"))
     //navigator
     implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
@@ -96,13 +95,19 @@ dependencies {
 //    implementation("org.commonmark:commonmark:0.24.0")
 
     implementation("com.mikepenz:multiplatform-markdown-renderer:0.27.0")
-
     // Offers Material 2 defaults for Material 2 themed apps (com.mikepenz.markdown.m2.Markdown)
     implementation("com.mikepenz:multiplatform-markdown-renderer-m2:0.27.0")
-
     // Offers Material 3 defaults for Material 3 themed apps (com.mikepenz.markdown.m3.Markdown)
     implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.27.0")
 
+    //require by coil3
+    implementation(libs.coil.network.ktor)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.java)
+    implementation(libs.kotlinx.coroutines.swing)
+
+    implementation("com.mikepenz:multiplatform-markdown-renderer-coil3:0.27.0")
+    implementation("com.mikepenz:multiplatform-markdown-renderer-code:0.27.0")
     implementation("com.mikepenz:multiplatform-markdown-renderer-jvm:0.27.0")
 
     implementation(compose.components.resources)
