@@ -19,10 +19,13 @@ fun Tray(scope: ApplicationScope) {
     val icon = if (fileMigrateViewModel.serviceRunningState.value) activeIcon else deActiveIcon
     val trayState = rememberTrayState()
 
-    scope.Tray(state = trayState,
+    scope.Tray(
+        state = trayState,
         icon = icon,
         tooltip = APP_WINDOW_TITLE,
-        onAction = { APPViewModel.isVisible.value = true },
+        onAction = {
+            APPViewModel.isVisible.value = true
+        },
         menu = {
 //            Item(
 //                "migrate service",
@@ -41,6 +44,12 @@ fun Tray(scope: ApplicationScope) {
 //                    fileMigrateViewModel.serviceState.value = "启动服务"
 //                }
 //            )
+            Item(
+                "open web",
+                onClick = {
+                    APPViewModel.webWindowVisible.value = true
+                }
+            )
 
             Item(
                 "exit",

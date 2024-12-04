@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
 
     kotlin("jvm")
+    //todo refactor
+    alias(libs.plugins.jetbrainsCompose)
 //    kotlin("multiplatform")
 //    kotlin("plugin.compose")
 
@@ -13,7 +15,8 @@ plugins {
 //    alias(libs.plugins.compose.compiler) apply false
 
 //    id("java-platform")
-    id("org.jetbrains.compose")
+//    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose") version ("2.1.0")
     id("org.jetbrains.kotlin.plugin.serialization") version ("2.0.0-RC1")
 }
 
@@ -27,15 +30,6 @@ kotlin.compilerOptions {
 
 group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
-
-repositories {
-
-    google()
-    gradlePluginPortal()
-    mavenCentral()
-    maven("https://jogamp.org/deployment/maven") //require by webview
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-}
 
 //val os: org.gradle.internal.os.OperatingSystem = org.gradle.internal.os.OperatingSystem.current()
 //val arch: String = System.getProperty("os.arch")

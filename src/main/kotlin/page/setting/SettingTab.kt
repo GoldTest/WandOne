@@ -159,12 +159,12 @@ fun SettingPage() {
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = "启动浏览器")
+            Text(text = "浏览器启动")
             Spacer(modifier = Modifier.width(4.dp))
             Checkbox(modifier = Modifier.size(24.dp), checked = webEnable.value, onCheckedChange = { isChecked ->
                 run {
                     webEnable.value = isChecked
-                    APPViewModel.webEnable.value = true
+                    APPViewModel.webWindowVisible.value = isChecked
                     setPrefValue("webEnable", isChecked)
                 }
             })

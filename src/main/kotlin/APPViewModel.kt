@@ -13,7 +13,8 @@ import page.web3.Web3ViewModel
 object APPViewModel {
     var isVisible = mutableStateOf(getPrefValue("hideAfterLaunch", false).not())
     var wideMode = mutableStateOf(getPrefValue("wideMode", false))
-    var webEnable = mutableStateOf(getPrefValue("webEnable", false))
+    var webWindowVisible = mutableStateOf(getPrefValue("webEnable", true))
+
     val database by lazy {
         Database.connect(
             url = "jdbc:sqlite:data/pipeline.db",
