@@ -46,5 +46,8 @@ bin/
 .kotlin/
 .kotlin
 kcef-bundle/
+jcef-bundle/
 cache/
-.run/
+#.run/
+MediaDeviceSalts
+MediaDeviceSalts-journal
