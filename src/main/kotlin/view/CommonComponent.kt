@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
@@ -69,3 +70,5 @@ fun Modifier.detectRightClick(onRightClick: (Offset) -> Unit): Modifier {
         }
     }
 }
+fun Modifier.visible(visible: Boolean): Modifier =
+    this.then(if (visible) Modifier else Modifier.alpha(0f))

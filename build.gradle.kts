@@ -29,11 +29,23 @@ group = "arc.mage.wandone"
 version = "1.0-SNAPSHOT"
 
 repositories {
+
     google()
     gradlePluginPortal()
     mavenCentral()
+    maven("https://jogamp.org/deployment/maven") //require by webview
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
+
+//val os: org.gradle.internal.os.OperatingSystem = org.gradle.internal.os.OperatingSystem.current()
+//val arch: String = System.getProperty("os.arch")
+//val isAarch64: Boolean = arch.contains("aarch64")
+//val platform =
+//    when {
+//        os.isWindows -> "win"
+//        os.isMacOsX -> "mac"
+//        else -> "linux"
+//    } + if (isAarch64) "-aarch64" else ""
 
 dependencies {
 //    api(platform(project(":platform")))
@@ -117,12 +129,16 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")
 
-//    implementation("io.github.kevinnzou:compose-webview:0.33.6") //android only
-//    https://github.com/MohamedRejeb/Calf good ui
-    implementation("com.mohamedrejeb.calf:calf-webview:0.6.1")
-    implementation("com.mohamedrejeb.calf:calf-ui:0.6.1")
-    implementation("com.mohamedrejeb.calf:calf-file-picker:0.6.1")
+    //webview
+    api("io.github.kevinnzou:compose-webview-multiplatform:1.9.40")
 
+
+//    implementation("org.openjfx:javafx-base:19:$platform")
+//    implementation("org.openjfx:javafx-graphics:19:$platform")
+//    implementation("org.openjfx:javafx-controls:19:$platform")
+//    implementation("org.openjfx:javafx-media:19:$platform")
+//    implementation("org.openjfx:javafx-web:19:$platform")
+//    implementation("org.openjfx:javafx-swing:19:$platform")
 
 }
 compose.resources {
@@ -132,10 +148,15 @@ compose.resources {
     )
 }
 compose.desktop {
-
     application {
         mainClass = "MainKt"
+        jvmArgs("--add-opens", "java.desktop/sun.awt=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.desktop/java.awt.peer=ALL-UNNAMED") // recommended but not necessary
 
+        if (System.getProperty("os.name").contains("Mac")) {
+            jvmArgs("--add-opens", "java.desktop/sun.lwawt=ALL-UNNAMED")
+            jvmArgs("--add-opens", "java.desktop/sun.lwawt.macosx=ALL-UNNAMED")
+        }
         nativeDistributions {
             modules("java.sql") //db
             modules("java.naming") //path
@@ -155,6 +176,9 @@ compose.desktop {
                 perUserInstall = false
                 shortcut = true
             }
+        }
+        buildTypes.release.proguard {
+            configurationFiles.from("compose-desktop.pro")
         }
     }
 }

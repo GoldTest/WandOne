@@ -32,4 +32,6 @@ object APPViewModel {
     val promptService by lazy { PromptService(database) }
 
     val web3ViewModel by lazy { Web3ViewModel() }
+
+    val webViewModel by lazy { WebViewModel() }
 }

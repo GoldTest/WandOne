@@ -19,6 +19,7 @@ gradleMvnPublish = "0.30.0"
 screenshot = "0.0.1-alpha07"
 ktor = "3.0.1"
 highlights = "0.9.3"
+kotlinx-coroutines = "1.9.0"
 
 [libraries]
 androidx-material = { group = "com.google.android.material", name = "material", version.ref = "androidx-material" }
@@ -38,13 +39,13 @@ coil2-core = { module = "io.coil-kt:coil-compose", version.ref = "coil2" }
 coil2-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil2" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
+kotlinx-coroutines-javafx = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-javafx", version.ref = "kotlinx-coroutines" }
+
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

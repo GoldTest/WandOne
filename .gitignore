@@ -47,3 +47,4 @@ bin/
 .kotlin
 kcef-bundle/
 cache/
+.run/
