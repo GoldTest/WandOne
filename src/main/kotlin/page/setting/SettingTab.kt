@@ -48,6 +48,7 @@ object SettingTab : Tab {
         this.index = index.toUShort()
         return SettingTab
     }
+
     override val options: TabOptions
         @Composable get() {
             val title = TAB_SETTINGS
@@ -149,6 +150,22 @@ fun SettingPage() {
                         windowState.value.position = WindowPosition(Alignment.Center)
                     } else windowState.value.size = DpSize(APP_WINDOW_WIDTH, APP_WINDOW_HEIGHT)
                     setPrefValue("wideMode", isChecked)
+                }
+            })
+        }
+
+        ColumnGap()
+        val webEnable = remember { mutableStateOf(getPrefValue("webEnable", false)) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "启动浏览器")
+            Spacer(modifier = Modifier.width(4.dp))
+            Checkbox(modifier = Modifier.size(24.dp), checked = webEnable.value, onCheckedChange = { isChecked ->
+                run {
+                    webEnable.value = isChecked
+                    APPViewModel.webEnable.value = true
+                    setPrefValue("webEnable", isChecked)
                 }
             })
         }

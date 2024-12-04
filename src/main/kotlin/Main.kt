@@ -1,16 +1,20 @@
 import APPViewModel.windowState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.Button
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -20,10 +24,12 @@ import androidx.compose.ui.window.rememberWindowState
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberSaveableWebViewState
+import com.multiplatform.webview.web.rememberWebViewNavigator
 import dev.datlag.kcef.KCEF
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import page.tray.Tray
+import view.RowGap
 import java.io.File
 import kotlin.math.max
 
@@ -56,23 +62,30 @@ fun main() = run {
                 app()
             }
         }
-        windowWeb()
+        if (viewModel.webEnable.value) windowWeb()
     }
 }
 
 @Composable
 fun windowWeb() {
-    val state = rememberWindowState()
-    state.size = DpSize(600.dp, 900.dp)
+    val windowState = rememberWindowState()
+    windowState.size = DpSize(600.dp, 900.dp)
+    windowState.position = WindowPosition(alignment = Alignment.CenterEnd)
+//    windowState.position = WindowPosition(x = windowState.position.x, y = windowState.position.y)
+
+    var state by mutableStateOf(rememberSaveableWebViewState("https://music.163.com/outchain/player?type=4&id=526213626&auto=0&height=430"))
     Window(
-        state = state,
-        onCloseRequest = {},
-        title = "simple"
+        state = windowState,
+        onCloseRequest = {
+            KCEF.disposeBlocking()
+        },
+        title = if (state.pageTitle.toString() == "null") "简单浏览器" else "${state.pageTitle}"
     ) {
         var restartRequired by remember { mutableStateOf(false) }
         var downloading by remember { mutableStateOf(0F) }
         var initialized by remember { mutableStateOf(false) }
-        var state by mutableStateOf(rememberSaveableWebViewState("https://music.163.com/outchain/player?type=4&id=526213626&auto=0&height=430"))
+        val navigator = rememberWebViewNavigator()
+
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 KCEF.init(builder = {
@@ -100,43 +113,46 @@ fun windowWeb() {
         } else {
             if (initialized) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    var tab by remember { mutableStateOf(0) }
-                    Row() {
+                    var web by remember { mutableStateOf("") }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RowGap()
                         Button(onClick = {
-                            tab = 0
-                        }) {
-                            Text("tab1")
-                        }
-                        Button(onClick = {
-                            tab = 1
-                        }) {
-                            Text("tab2")
-                        }
-                    }
-                    when (tab) {
-                        0 -> Column() {
-                            Text(text = "${state.pageTitle}")
-                            val loadingState = state.loadingState
-                            if (loadingState is LoadingState.Loading) {
-                                LinearProgressIndicator(
-                                    progress = loadingState.progress,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                            if (navigator.canGoBack) {
+                                navigator.navigateBack()
                             }
-                            WebView(
-                                state = state,
-                                modifier = Modifier.fillMaxSize(),
-                                onCreated = { webViewState ->
-                                    println("created")
-                                },
-                                onDispose = { webViewState ->
-                                    println("disposed")
-                                }
+                        }) {
+                            Text("Back")
+                        }
+                        RowGap()
+                        OutlinedTextField(
+                            value = web,
+                            onValueChange = { web = it },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            singleLine = true
+                        )
+                        RowGap()
+                        Button(onClick = {
+                            navigator.loadUrl(web)
+                        }) {
+                            Text("Go")
+                        }
+                        RowGap()
+                    }
+                    Column() {
+                        val loadingState = state.loadingState
+                        if (loadingState is LoadingState.Loading) {
+                            LinearProgressIndicator(
+                                progress = loadingState.progress,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
-
-                        1 -> Text("good")
+                        WebView(
+                            state = state,
+                            modifier = Modifier.fillMaxSize(),
+                            navigator = navigator,
+                        )
                     }
+
                 }
             } else {
                 Text(text = "Downloading $downloading%")
