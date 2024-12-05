@@ -36,6 +36,7 @@ class PromptService(private val database: Database) {
         val id = integer("id").autoIncrement()
         val workSpace = varchar("workSpace", 255)
         val active = bool("active")
+        val title = text("title") //空格分隔的key字段列表
         val prompt = text("prompt") //空格分隔的key字段列表
 
         override val primaryKey = PrimaryKey(id)
@@ -46,6 +47,7 @@ class PromptService(private val database: Database) {
             _Prompt.insert {
                 it[workSpace] = input.workSpace
                 it[active] = input.active
+                it[title] = input.title ?: ""
                 it[prompt] = input.prompt
             }
         }
@@ -66,6 +68,7 @@ class PromptService(private val database: Database) {
             }) {
                 it[workSpace] = input.workSpace
                 it[active] = input.active
+                it[title] = input.title ?: ""
                 it[prompt] = input.prompt
             }
         }
@@ -78,6 +81,7 @@ class PromptService(private val database: Database) {
             id = row[_Prompt.id],
             workSpace = row[_Prompt.workSpace],
             active = row[_Prompt.active],
+            title = row[_Prompt.title],
             prompt = row[_Prompt.prompt],
         )
     }
@@ -105,5 +109,6 @@ data class Prompt(
     var id: Int = 0,
     val workSpace: String = "",
     val active: Boolean = false,
+    val title: String? = "",
     val prompt: String = "",
 )

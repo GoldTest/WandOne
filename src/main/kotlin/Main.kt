@@ -1,3 +1,4 @@
+import APPViewModel.globalScope
 import APPViewModel.windowState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -17,6 +18,7 @@ import com.multiplatform.webview.web.rememberSaveableWebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import dev.datlag.kcef.KCEF
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import page.tray.Tray
 import view.RowGap
@@ -152,9 +154,10 @@ fun windowWeb() {
 
         DisposableEffect(Unit) {
             onDispose {
-//                globalScope.launch() {
+                globalScope.launch() {
+                    state.nativeWebView.dispose()
 //                    KCEF.dispose()
-//                }
+                }
             }
         }
     }

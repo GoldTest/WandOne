@@ -116,12 +116,10 @@ fun tongyiConfig(page: String) {
             Text(text = "启用搜索")
             Spacer(modifier = Modifier.width(4.dp))
             Checkbox(modifier = Modifier.size(24.dp), checked = enableSearch, onCheckedChange = { isChecked ->
-                run {
-                    enableSearch = isChecked
-                    setPrefJson(page, mapOf("enableSearch" to enableSearch))
-                    getPrefJson(page)?.run {
-                        param = this
-                    }
+                enableSearch = isChecked
+                setPrefJson(page, mapOf("enableSearch" to enableSearch))
+                getPrefJson(page)?.run {
+                    param = this
                 }
             })
         }
