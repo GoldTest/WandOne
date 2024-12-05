@@ -1,5 +1,6 @@
 package page.setting
 
+import APPViewModel
 import APPViewModel.keyService
 import APPViewModel.windowState
 import APP_WINDOW_HEIGHT
@@ -8,13 +9,12 @@ import APP_WINDOW_WIDTH
 import APP_WINDOW_WIDTH_WMODE
 import PAGE_END
 import PAGE_START
-import TAB_SETTINGS
 import SPACER_HEIGHT_12
+import TAB_SETTINGS
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*

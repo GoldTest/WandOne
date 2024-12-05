@@ -27,7 +27,6 @@ import page.pipeline.struct.*
 import java.awt.Dimension
 import javax.swing.JFileChooser
 import javax.swing.SwingUtilities
-import kotlin.Exception
 
 class InputNodeScreen : Screen {
     @Composable
@@ -141,23 +140,26 @@ class NodeScreen : Screen {
                     Text("匹配")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (type.value == "multiMatch") MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    type.value = "multiMatch"
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (type.value == "multiMatch") MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        type.value = "multiMatch"
+                    }) {
                     Text("多匹配")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (type.value == "operate") MaterialTheme.colors.primary else Color.White
-                ), onClick = {
-                    type.value = "operate"
-                }) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (type.value == "operate") MaterialTheme.colors.primary else Color.White
+                    ), onClick = {
+                        type.value = "operate"
+                    }) {
                     Text("操作")
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Button(enabled = end.value and (currentNode.value != null),
+                Button(
+                    enabled = end.value and (currentNode.value != null),
                     onClick = {
                         currentNode.value?.let { processNodes.add(it) }
                         navigator.hide()
@@ -178,7 +180,7 @@ class NodeScreen : Screen {
 @Composable
 fun FilterNodeScreen(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
 
     val type = remember { mutableStateOf("none") }
@@ -231,7 +233,7 @@ fun FilterNodeScreen(
 @Composable
 fun MatchNodeScreen(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
 
     val type = remember { mutableStateOf("none") }
@@ -273,7 +275,7 @@ fun MatchNodeScreen(
 @Composable
 fun MatchName(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val nameMatchMode = remember { mutableStateOf(NameMatchMode.None) }
     val nameMatchSubMode = remember { mutableStateOf(NameMatchSubMode.None) }
@@ -404,7 +406,7 @@ fun MatchName(
 @Composable
 fun MatchType(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val fileType = remember { mutableStateOf("none") }
     val typeList = remember { mutableStateListOf<String>() }
@@ -504,7 +506,7 @@ fun MatchType(
 @Composable
 fun MultiMatchNodeScreen(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
 
     val type = remember { mutableStateOf("none") }
@@ -527,7 +529,7 @@ fun MultiMatchNodeScreen(
 @Composable
 fun MatchPair(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
 
     val inputPreview = remember { mutableStateOf("12312123-1-12312.mp4") }
@@ -605,7 +607,7 @@ fun MatchPair(
 @Composable
 fun MatchSerial(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     Column {
         Row {
@@ -622,7 +624,7 @@ fun MatchSerial(
 @Composable
 fun OperateNodeScreen(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val operateChooseState = remember { mutableStateOf("none") }
     fun updateOperateNode() {
@@ -659,7 +661,7 @@ fun OperateNodeScreen(
 @Composable
 fun Rename(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val renameType = remember { mutableStateOf("none") }
     Row {
@@ -683,7 +685,7 @@ fun Rename(
 @Composable
 fun EasyRename(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val type = remember { mutableStateOf(EasyRenameMode.None) }
     val ignoreFileType = remember { mutableStateOf(true) }
@@ -779,7 +781,7 @@ fun EasyRename(
 @Composable
 fun RegexRename(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val renameRegex = remember { mutableStateOf("") }
     val renameReplace = remember { mutableStateOf("") }
@@ -882,7 +884,7 @@ fun RegexRename(
 @Composable
 fun MediaMerge(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val type = remember { mutableStateOf("none") }
     Row {
@@ -893,7 +895,7 @@ fun MediaMerge(
 @Composable
 fun Move(
     end: MutableState<Boolean>,
-    currentNode: MutableState<ProcessNode?>
+    currentNode: MutableState<ProcessNode?>,
 ) {
     val type = remember { mutableStateOf("none") }
     val folder = remember { mutableStateOf("") }
@@ -1053,7 +1055,7 @@ fun <T> GenericRadio(
     label: String,
     textColor: Color? = null,
     radioColor: Color? = null,
-    onOptionSelected: ((T) -> Unit)? = null
+    onOptionSelected: ((T) -> Unit)? = null,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (textColor != null) {
@@ -1081,7 +1083,7 @@ fun <T> GenericRadio(
 fun TypeListCheckBox(
     label: String,
     typeList: MutableList<String>,
-    vararg fileType: String
+    vararg fileType: String,
 ) {
     val isChecked = remember { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically) {

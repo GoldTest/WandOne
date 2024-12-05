@@ -1,7 +1,7 @@
 import org.gradle.kotlin.dsl.mavenCentral
 
 pluginManagement {
-    //声明查找位置
+    //声明查找位置 plugin
     repositories {
         gradlePluginPortal()
         maven("https://jitpack.io")
@@ -11,15 +11,12 @@ pluginManagement {
     }
 
     //声明可用 plugin 不是应用依赖 只是声明
-
     plugins {
-        kotlin("jvm").version(extra["kotlin.version"] as String)
-        id("org.jetbrains.compose").version(extra["compose.version"] as String)
     }
 }
-//三方依赖
-dependencyResolutionManagement{
-    repositories{
+dependencyResolutionManagement {
+    //三方依赖 libs
+    repositories {
         google()
         gradlePluginPortal()
         mavenCentral()

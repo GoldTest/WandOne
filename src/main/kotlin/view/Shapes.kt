@@ -13,7 +13,7 @@ class HalfCircleCutShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val path = Path().apply {
             val sqrt = sqrt(2f)
@@ -30,7 +30,7 @@ class HalfCircleCutShape : Shape {
             )
             arcTo(
                 rect = Rect(
-                    left = size.width-2*sqrt*size.height,
+                    left = size.width - 2 * sqrt * size.height,
                     top = -size.height,
                     right = size.width,
                     bottom = size.height
@@ -50,7 +50,7 @@ class ArcCutShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val path = Path().apply {
             val arcHeight = size.height / 2 // 调整这个值来改变弧线的高度

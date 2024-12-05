@@ -4,7 +4,8 @@ import PAGE_END
 import PAGE_START
 import TAB_TOOLS
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ object ToolsTab : Tab {
         this.index = index.toUShort()
         return ToolsTab
     }
+
     override val options: TabOptions
         @Composable
         get() {
@@ -54,11 +56,8 @@ fun ToolsPage() {
         Tomato()
         ColumnGap()
         //卡路里
-        Calorie()
-        ColumnGap()
-
-        // 食物选择器
-
+//        Calorie()
+//        ColumnGap()
 
     }
 }

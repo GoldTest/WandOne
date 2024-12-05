@@ -8,7 +8,7 @@ import kotlin.concurrent.schedule
 open class FileMigrationService(
     private val sourceFolderPath: String,
     private val destinationFolderPath: String,
-    private val viewModel: FileMigrateViewModel
+    private val viewModel: FileMigrateViewModel,
 ) {
 
     private var timer: Timer? = null

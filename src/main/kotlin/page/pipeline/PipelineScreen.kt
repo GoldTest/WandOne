@@ -13,7 +13,9 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -28,21 +30,22 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
-import model.*
-import page.pipeline.CreateNodes.currentPipeline
-import page.pipeline.CreateNodes.inputNodes
-import page.pipeline.CreateNodes.processNodes
+import model.SharedInstance
+import model.ToastViewModel
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
+import page.pipeline.CreateNodes.currentPipeline
+import page.pipeline.CreateNodes.inputNodes
+import page.pipeline.CreateNodes.processNodes
 import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.struct.Node
 import page.pipeline.struct.Pipeline
 import page.pipeline.struct.ProcessNode
 
 data class PipelineScreen(
-    val pipeline: Pipeline? = null
+    val pipeline: Pipeline? = null,
 ) : Screen {
     override val key = uniqueScreenKey
 
@@ -81,7 +84,8 @@ data class PipelineScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.weight(1f)) {
-                        Button(enabled = navigator.canPop,
+                        Button(
+                            enabled = navigator.canPop,
                             onClick = {
                                 navigator.pop()
                             }) {
@@ -100,7 +104,8 @@ data class PipelineScreen(
                     }
 
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.weight(1f)) {
-                        Button(enabled = navigator.canPop and currentPipeline.value.savable(),
+                        Button(
+                            enabled = navigator.canPop and currentPipeline.value.savable(),
                             onClick = {
                                 if (update) {
                                     pipelineService.updatePipeline(currentPipeline.value)

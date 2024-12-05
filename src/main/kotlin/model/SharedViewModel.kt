@@ -1,7 +1,5 @@
 package model
 
-import DEFAULT_DOUYIN_DEST_FOLDER
-import DEFAULT_DOUYIN_SOURCE_FOLDER
 import FILE_MIGRATE_MANUAL
 import FILE_MIGRATE_START_SERVICE
 import androidx.compose.material.SnackbarHostState
@@ -11,8 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import service.file.FileMigrationService
 
 object FileMigrateViewModel {
     var migrateState = mutableStateOf(FILE_MIGRATE_MANUAL)

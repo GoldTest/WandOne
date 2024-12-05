@@ -13,7 +13,9 @@ import com.alibaba.dashscope.common.Role
 import func.getPrefJson
 import io.reactivex.Flowable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 

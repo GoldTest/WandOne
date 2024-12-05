@@ -28,14 +28,14 @@ import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import page.pipeline.struct.Describe
-import page.pipeline.struct.Pipeline
 import page.pipeline.PipeLineViewModel.currentNodeDescribe
 import page.pipeline.PipeLineViewModel.fabClicked
 import page.pipeline.PipeLineViewModel.hitLog
 import page.pipeline.PipeLineViewModel.pipelineService
 import page.pipeline.PipeLineViewModel.pipelines
 import page.pipeline.PipeLineViewModel.tempLog
+import page.pipeline.struct.Describe
+import page.pipeline.struct.Pipeline
 import view.customScrollable
 
 
@@ -46,6 +46,7 @@ object PipelineTab : Tab, FabAction {
         this.index = index.toUShort()
         return PipelineTab
     }
+
     override val options: TabOptions
         @Composable
         get() {
@@ -85,7 +86,7 @@ fun Tab.pipelinePage(
 }
 
 data class PipelinePage(
-    val index: Int = 0
+    val index: Int = 0,
 ) : Screen {
     override val key = uniqueScreenKey
 

@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun Modifier.customScrollable(
     scrollState: LazyListState,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ): Modifier {
 
     return this.draggable(
@@ -53,8 +53,8 @@ fun RowGap(gap: Dp = 12.dp) {
     Spacer(Modifier.width(gap))
 }
 
-fun commonMarkdownColors(){}
-fun commonMarkdownTypography(){}
+fun commonMarkdownColors() {}
+fun commonMarkdownTypography() {}
 
 fun Modifier.detectRightClick(onRightClick: (Offset) -> Unit): Modifier {
     return pointerInput(Unit) {
@@ -70,5 +70,6 @@ fun Modifier.detectRightClick(onRightClick: (Offset) -> Unit): Modifier {
         }
     }
 }
+
 fun Modifier.visible(visible: Boolean): Modifier =
     this.then(if (visible) Modifier else Modifier.alpha(0f))

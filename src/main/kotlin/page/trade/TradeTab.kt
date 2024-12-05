@@ -3,11 +3,9 @@ package page.trade
 import PAGE_END
 import PAGE_START
 import TAB_Trade
-import TAB_Web3
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -21,7 +19,6 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import func.getPrefValue
 import func.setPrefValue
-import page.web3.henge.autoHenge
 import view.RowGap
 
 
@@ -32,6 +29,7 @@ object TradeTab : Tab {
         this.index = index.toUShort()
         return TradeTab
     }
+
     override val options: TabOptions
         @Composable
         get() {

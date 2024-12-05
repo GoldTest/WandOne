@@ -6,6 +6,6 @@ import func.getPrefValue
 class Web3ViewModel {
 
 
-    val page = mutableStateOf(getPrefValue("web3Page",0))
+    val page = mutableStateOf(getPrefValue("web3Page", 0))
 
 }

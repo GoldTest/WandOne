@@ -8,6 +8,6 @@ class TomatoService(val database: Database) {
 
 data class TomatoDao(
     val time: Int,
-    val stage: Int
+    val stage: Int,
 )
 

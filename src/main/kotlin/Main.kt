@@ -1,21 +1,10 @@
-import APPViewModel.globalScope
 import APPViewModel.windowState
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material.Button
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -27,15 +16,12 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberSaveableWebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import dev.datlag.kcef.KCEF
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import page.tray.Tray
 import view.RowGap
 import java.io.File
 import kotlin.math.max
-import kotlin.system.exitProcess
 
 fun main() = run {
     application {
@@ -66,7 +52,7 @@ fun main() = run {
                 app()
             }
         }
-        windowWeb() //if (viewModel.webEnable.value)
+        windowWeb()
     }
 }
 
@@ -76,19 +62,13 @@ fun windowWeb() {
     var visible by remember { APPViewModel.webWindowVisible }
     windowState.size = DpSize(600.dp, 900.dp)
     windowState.position = WindowPosition(alignment = Alignment.CenterEnd)
-//    windowState.position = WindowPosition(x = windowState.position.x, y = windowState.position.y)
 
     var state by mutableStateOf(rememberSaveableWebViewState("https://music.163.com/outchain/player?type=4&id=526213626&auto=0&height=430"))
     Window(
         state = windowState,
         visible = visible,
         onCloseRequest = {
-//            exitProcess(0)
             visible = false
-//            windowState.isMinimized = true
-//            globalScope.launch() {
-//                KCEF.dispose()
-//            }
         },
         title = if (state.pageTitle.toString() == "null") "简单浏览器" else "${state.pageTitle}"
     ) {

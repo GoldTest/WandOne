@@ -7,7 +7,7 @@ androidx-activityCompose = "1.9.3"
 androidx-material = "1.12.0"
 compose = "1.7.5"
 compose-plugin = "1.7.1"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 coroutines = "1.9.0"
 dokka = "2.0.0-Beta"
 coil = "3.0.0-rc02"
@@ -20,6 +20,16 @@ screenshot = "0.0.1-alpha07"
 ktor = "3.0.1"
 highlights = "0.9.3"
 kotlinx-coroutines = "1.9.0"
+
+voyager = "1.0.0"
+exposed = "0.52.0"
+sqlite = "3.47.1.0"
+h2 = "2.3.232"
+kotlin-serialization = "1.2.0"
+reorder = "0.9.6"
+dashscope = "2.16.9"
+markdownx = "0.27.0"
+webviewx = "1.9.40"
 
 [libraries]
 androidx-material = { group = "com.google.android.material", name = "material", version.ref = "androidx-material" }
@@ -38,22 +48,57 @@ coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.re
 coil2-core = { module = "io.coil-kt:coil-compose", version.ref = "coil2" }
 coil2-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil2" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-rx3 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx3", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-javafx = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-javafx", version.ref = "kotlinx-coroutines" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
+
+
+nav = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+navTab = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
+navBottom = { module = "cafe.adriel.voyager:voyager-bottom-sheet-navigator", version.ref = "voyager" }
+navTransition = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
+
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
+h2database = { module = "com.h2database:h2", version.ref = "h2" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
+reorder = { module = "org.burnoutcrew.composereorderable:reorderable", version.ref = "reorder" }
+dashscope = { module = "com.alibaba:dashscope-sdk-java", version.ref = "dashscope" }
+
+markdownx = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdownx" }
+markdownx-m2 = { module = "com.mikepenz:multiplatform-markdown-renderer-m2", version.ref = "markdownx" }
+markdownx-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownx" }
+markdownx-coil3 = { module = "com.mikepenz:multiplatform-markdown-renderer-coil3", version.ref = "markdownx" }
+markdownx-code = { module = "com.mikepenz:multiplatform-markdown-renderer-code", version.ref = "markdownx" }
+markdownx-jvm = { module = "com.mikepenz:multiplatform-markdown-renderer-jvm", version.ref = "markdownx" }
+webviewx = { module = "io.github.kevinnzou:compose-webview-multiplatform", version.ref = "webviewx" }
+kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlib" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "gradleMvnPublish" }
 screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+
 
 [bundles]
 coil = ["coil-core", "coil-network-okhttp"]

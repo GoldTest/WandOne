@@ -31,6 +31,7 @@ object Web3Tab : Tab {
         this.index = index.toUShort()
         return Web3Tab
     }
+
     override val options: TabOptions
         @Composable
         get() {

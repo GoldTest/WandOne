@@ -31,7 +31,7 @@ data class Pipeline(
     var runningState: Boolean = false,
     var singleInput: Boolean = true,//todo multi input
     var inputs: MutableList<InputNode>,
-    var nodes: MutableList<ProcessNode>
+    var nodes: MutableList<ProcessNode>,
 ) {
     val service = false
 
@@ -57,7 +57,7 @@ data class Pipeline(
                     hitLog.add("\n")
                 }
             }
-            currentNodeDescribe.value = "已匹配 ${hitLog.size/2}"
+            currentNodeDescribe.value = "已匹配 ${hitLog.size / 2}"
         }
 
     }
@@ -222,7 +222,7 @@ class MatchNameNode(
     val filterPurePath: Boolean = true,
     val forceSubString: Boolean = false,
     val caseSensitive: Boolean = false,
-    val regexType: RegexType = RegexType.None
+    val regexType: RegexType = RegexType.None,
 ) : MatchNode() {
 
     override fun rule(input: Any): Boolean {
@@ -369,7 +369,7 @@ enum class FileType {
 @Serializable
 class MatchTypeNode(
     val mode: FileType = FileType.None,
-    val typeList: MutableList<String>? = null
+    val typeList: MutableList<String>? = null,
 ) : MatchNode() {
 
     override fun rule(input: Any): Boolean {
@@ -476,7 +476,7 @@ class ProcessEasyRenameNode(
     var easyRenameMode: EasyRenameMode = EasyRenameMode.None,
     var replaceString: String,
     var ignoreFileType: Boolean = true,
-    var maxRetryCount: Int = 100
+    var maxRetryCount: Int = 100,
 ) : ProcessNode() {
 
     override fun log(): String {
@@ -608,7 +608,7 @@ class ProcessEasyRenameNode(
 @Serializable
 class ProcessRegexRenameNode(
     val regex: String,
-    val replacement: String
+    val replacement: String,
 ) : ProcessNode() {
 
     override fun log(): String {
@@ -659,7 +659,7 @@ class ProcessMoveNode(
     val maxRetryCount: Int = 100,
     val subFolder: Boolean = false,
     val subFolderRegex: String = "",
-    val subFolderReplaceRegex: String = ""
+    val subFolderReplaceRegex: String = "",
 ) : ProcessNode() {
 
 
