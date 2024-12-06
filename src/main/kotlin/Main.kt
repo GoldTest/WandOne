@@ -54,12 +54,12 @@ fun main() = run {
                 app()
             }
         }
-        windowWeb()
+        webWindow()
     }
 }
 
 @Composable
-fun windowWeb() {
+fun webWindow() {
     val windowState = rememberWindowState()
     var visible by remember { APPViewModel.webWindowVisible }
     windowState.size = DpSize(600.dp, 900.dp)

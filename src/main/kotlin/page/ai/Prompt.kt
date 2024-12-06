@@ -20,13 +20,11 @@ class PromptService(private val database: Database) {
     }
 
     val currentPrompt
-        get() =
-            _promptFlow.value.find {
-                it.workSpace == getPrefValue(
-                    "aiapi",
-                    "tongyi"
-                ) && it.active
-            }?.prompt
+        get() = _promptFlow.value.find {
+            it.workSpace == getPrefValue(
+                "aiapi", "tongyi"
+            ) && it.active
+        }?.prompt
 
     fun update() {
         _promptFlow.value = transaction { _Prompt.selectAll().map { toPrompt(it) }.toMutableList() }
@@ -90,7 +88,7 @@ class PromptService(private val database: Database) {
         if (active) {
             transaction {
                 _Prompt.update(where = { _Prompt.workSpace eq input.workSpace }) {
-                    it[_Prompt.active] = active.not()
+                    it[_Prompt.active] = false
                 }
                 _Prompt.update(where = {
                     _Prompt.id eq input.id

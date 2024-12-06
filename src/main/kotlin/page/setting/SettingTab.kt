@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -195,7 +196,9 @@ fun SettingPage() {
             showKeys.value = showKeys.value.not()
         })
         val keyList = keyService.keyFlow.collectAsState()
-        if (showKeys.value) keySetting(keyList)
+        if (showKeys.value) {
+            keySetting(keyList)
+        }
     }
 }
 
@@ -281,10 +284,13 @@ fun keyAdd(workKey: ApiKey, delete: (key: ApiKey) -> Unit) {
                     }
                 })
                 RowGap(8.dp)
-                Text(
-                    item,
-                    style = TextStyle(color = if (workKey.defaultKey.trim() == item.trim()) Color.Blue else Color.Unspecified)
-                )
+                SelectionContainer() {
+                    Text(
+                        item,
+                        style = TextStyle(color = if (workKey.defaultKey.trim() == item.trim()) Color.Blue else Color.Unspecified)
+                    )
+                }
+
                 RowGap(8.dp)
                 Button(onClick = {
                     if (workKey.workSpace.isNotBlank()) {

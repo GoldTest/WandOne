@@ -155,6 +155,7 @@ fun setPrefJson(keyName: String, map: Map<String, Any>) {
 fun getPrefJson(keyName: String): Map<String, Any>? {
     val typeToken = object : TypeToken<Map<String, Any>>() {}.type
     val map = gson.fromJson<Map<String, Any>>(getPrefValue(keyName, ""), typeToken)
+    if (map == null) return emptyMap()
     return map
 }
 

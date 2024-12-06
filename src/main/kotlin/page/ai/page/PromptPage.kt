@@ -3,13 +3,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -28,19 +27,38 @@ import view.RowGap
 fun promptPage() {
     val navigator = LocalNavigator.currentOrThrow
     val bottomSheetNavigator = LocalBottomSheetNavigator.current
-    val prompts = promptService.promptFlow.collectAsState(initial = emptyList())
+    val prompts by promptService.promptFlow.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    var selectedWorkspace by remember { mutableStateOf<String?>(null) }
 
-    var expandedPromptId by remember { mutableStateOf(0) }
+    val uniqueWorkspaces = remember(prompts) {
+        mutableStateListOf<String>().apply {
+            addAll(prompts.map { it.workSpace }.distinct())
+        }
+    }
 
+    val showPrompts = remember(prompts, selectedWorkspace) {
+        derivedStateOf {
+            if (selectedWorkspace == null) prompts else prompts.filter { it.workSpace == selectedWorkspace }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
         Row(
-            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            uniqueWorkspaces.forEach { workspace ->
+                Button(
+                    onClick = { selectedWorkspace = workspace },
+                ) {
+                    Text(workspace)
+                }
+                RowGap()
+            }
+            Spacer(modifier = Modifier.weight(1f))
             Button(
                 onClick = { bottomSheetNavigator.show(AddPromptScreen(null)) },
             ) {
@@ -56,8 +74,8 @@ fun promptPage() {
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalItemSpacing = 8.dp
         ) {
-            items(prompts.value.size) { index ->
-                val item = prompts.value[index]
+
+            itemsIndexed(showPrompts.value) { index, item ->
                 promptItem(
                     item,
                     onEdit = {
